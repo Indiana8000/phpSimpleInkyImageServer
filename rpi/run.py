@@ -13,7 +13,7 @@ from inky.auto import auto
 from inky.inky_uc8159 import CLEAN
 
 # Parameters
-url = "http://192.168.5.21/inky/image.php?inky=1"
+url = "http://192.168.5.21/inky/index.php?inky=1"
 slideshow = 60
 
 # Variables
@@ -55,7 +55,7 @@ def handle_button(pin):
 # Inky Clear Screen
 def handle_buttonClear(pin):
     global running
-    print("Button {} - Clear Start".format(pin))
+    print("Button {} - Clear - Start".format(pin))
     running = False
     for _ in range(2):
         for y in range(inky.height - 1):
@@ -64,12 +64,12 @@ def handle_buttonClear(pin):
         inky.show()
         time.sleep(1.0)
     running = True
-    print("Button {} - Clear Done".format(pin))
+    print("Button {} - Clear - Done".format(pin))
 
 # Button handler loading
 def handle_buttonLoad(pin):
     global countdown
-    print("Button {} - Loading Start".format(pin))
+    print("Button {} - Loading - Start".format(pin))
     running = False
     countdown = slideshow
     r = requests.get("{}&button={}".format(url, pin), stream=True)
@@ -78,20 +78,20 @@ def handle_buttonLoad(pin):
     resizedimage = image.resize(inky.resolution)
     saturation = brightness(resizedimage)
     inky.set_image(resizedimage, saturation=saturation)
-    print("Button {} - Got Image".format(pin))
+    print("Button {} - Loading - Got Image".format(pin))
     inky.show()
     running = True
-    print("Button {} - Loading Done".format(pin))
+    print("Button {} - Loading - Done".format(pin))
 
 def handle_buttonLikeit(pin):
-    print("Button {} - LikeIT Start".format(pin))
+    print("Button {} - LikeIT - Start".format(pin))
     r = requests.get("{}&likeit=1".format(url), stream=True)
-    print("Button {} - LikeIT Done".format(pin))
+    print("Button {} - LikeIT - Done".format(pin))
 
 def handle_buttonDisLike(pin):
-    print("Button {} - DisLikeIT Start".format(pin))
+    print("Button {} - DisLikeIT - Start".format(pin))
     r = requests.get("{}&likeit=-1".format(url), stream=True)
-    print("Button {} - DisLikeIT Done".format(pin))
+    print("Button {} - DisLikeIT - Done".format(pin))
 
 GPIO.add_event_detect( 5, GPIO.FALLING, handle_buttonLoad    , bouncetime=250)
 GPIO.add_event_detect( 6, GPIO.FALLING, handle_buttonLoad    , bouncetime=250)
@@ -103,8 +103,8 @@ while True:
     if running:
         countdown = countdown - 1
         print("Countdown:", countdown)
-    if countdown <= 0:
-        handle_buttonLoad(1)
+        if countdown <= 0:
+            handle_buttonLoad(1)
     time.sleep(60.0)
 
 # END
