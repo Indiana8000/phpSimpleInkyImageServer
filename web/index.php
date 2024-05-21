@@ -2,8 +2,21 @@
 // Initiate Configuration Array
 $GLOBALS['CONFIG'] = Array();
 
-// Database Connection
-$GLOBALS['CONFIG']['DB_DSN'] = 'sqlite:inky.sqlite';
+// Database Connection SQLite
+$GLOBALS['CONFIG']['DB_TYPE']     = 'sqlite';
+$GLOBALS['CONFIG']['DB_DSN']      = 'sqlite:inky.sqlite';
+$GLOBALS['CONFIG']['DB_X_RANDOM'] = 'RANDOM()';
+$GLOBALS['CONFIG']['DB_X_NOW']    = "DATETIME('now')";
+
+// Database Connection MySQL
+/*
+$GLOBALS['CONFIG']['DB_TYPE']     = 'mysql';
+$GLOBALS['CONFIG']['DB_DSN']      = 'mysql:host=127.0.0.1;dbname=inky';
+$GLOBALS['CONFIG']['DB_USER']     = 'inky';
+$GLOBALS['CONFIG']['DB_PASSWD']   = 'inky';
+$GLOBALS['CONFIG']['DB_X_RANDOM'] = 'RAND()';
+$GLOBALS['CONFIG']['DB_X_NOW']    = "NOW()";
+*/
 
 // Timezone / Language
 date_default_timezone_set('Europe/Berlin');
@@ -11,18 +24,31 @@ setlocale(LC_TIME, 'de_DE@euro', 'de_DE', 'de', 'de');
 
 // Connect
 try {
-	$GLOBALS['DB'] = new PDO($GLOBALS['CONFIG']['DB_DSN']);
+	if($GLOBALS['CONFIG']['DB_TYPE'] == 'sqlite') {
+		$GLOBALS['DB'] = new PDO($GLOBALS['CONFIG']['DB_DSN']);
+	} else if($GLOBALS['CONFIG']['DB_TYPE'] == 'mysql') {
+		$GLOBALS['DB'] = new PDO($GLOBALS['CONFIG']['DB_DSN'], $GLOBALS['CONFIG']['DB_USER'], $GLOBALS['CONFIG']['DB_PASSWD'], Array(PDO::MYSQL_ATTR_FOUND_ROWS => true, PDO::ATTR_EMULATE_PREPARES => true));
+		$GLOBALS['DB']->exec("SET NAMES 'utf8'");
+	} else {
+		die('Unknown Connection Type!');
+	}
 } catch(PDOException $e) {
 	die('Connection failed: ' . $e->getMessage());
 }
 
 // Create DB
 try {
-    $stmt = $GLOBALS['DB']->query("SELECT * FROM settings");
+	$stmt = $GLOBALS['DB']->query("SELECT * FROM inky_settings");
 } catch(PDOException $e) {
-	$GLOBALS['DB']->exec("CREATE TABLE settings (s_key TEXT, s_value TEXT)");
-	$GLOBALS['DB']->exec("CREATE TABLE images  (imagename TEXT, views NUMBER, likeit NUMBER, lastupdate NUMBER)");
-	$GLOBALS['DB']->exec("CREATE TABLE history (imagename TEXT, viewed TEXT)");
+	if($GLOBALS['CONFIG']['DB_TYPE'] == 'sqlite') {
+		$GLOBALS['DB']->exec("CREATE TABLE inky_settings (s_key TEXT, s_value TEXT)");
+		$GLOBALS['DB']->exec("CREATE TABLE inky_images   (imagename TEXT, views NUMBER, likeit NUMBER, lastupdate NUMBER)");
+		$GLOBALS['DB']->exec("CREATE TABLE inky_history  (imagename TEXT, viewed TEXT)");
+	} else if($GLOBALS['CONFIG']['DB_TYPE'] == 'mysql') {
+		$GLOBALS['DB']->exec("CREATE TABLE inky_settings (s_key varchar(250), s_value varchar(250)) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci");
+		$GLOBALS['DB']->exec("CREATE TABLE inky_images   (imagename varchar(250), views int(11), likeit int(11), lastupdate int(1)) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci");
+		$GLOBALS['DB']->exec("CREATE TABLE inky_history  (imagename varchar(250), viewed datetime) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci");
+	}
 }
 
 // Process Call
@@ -30,11 +56,11 @@ if(isset($_REQUEST['inky'])) { // Called by inky.py
 	if(isset($_REQUEST['likeit'])) { // Like it +/- button pressed
 		$likeit = 1; if(intval($_REQUEST['likeit']) < 0) $likeit = -1;
 		// Get Last Image
-		$stmt = $GLOBALS['DB']->query("SELECT imagename FROM history ORDER BY viewed DESC LIMIT 1");
+		$stmt = $GLOBALS['DB']->query("SELECT imagename FROM inky_history ORDER BY viewed DESC LIMIT 1");
 		$row = $stmt->fetch(PDO::FETCH_ASSOC);
 		$imagename = $row["imagename"];
 		// Update favorit counter
-		$stmt = $GLOBALS['DB']->prepare("UPDATE images SET likeit = likeit + :likeit WHERE imagename = :imagename");
+		$stmt = $GLOBALS['DB']->prepare("UPDATE inky_images SET likeit = likeit + :likeit WHERE imagename = :imagename");
 		$stmt->bindValue(':likeit'   , $likeit  , PDO::PARAM_INT);
 		$stmt->bindValue(':imagename',$imagename, PDO::PARAM_STR);
 		$stmt->execute();
@@ -43,21 +69,21 @@ if(isset($_REQUEST['inky'])) { // Called by inky.py
 		// Get pressed Button
 		$button = 0; if(isset($_REQUEST['button'])) $button = intval($_REQUEST['button']);
 		if($button == 6) { // Get random image from favorit list
-			$stmt = $GLOBALS['DB']->query("SELECT imagename FROM images WHERE lastupdate > 0 AND likeit > 0 ORDER BY RANDOM() LIMIT 1");
+			$stmt = $GLOBALS['DB']->query("SELECT imagename FROM inky_images WHERE lastupdate > 0 AND likeit > 0 ORDER BY ".$GLOBALS['CONFIG']['DB_X_RANDOM']." LIMIT 1");
 		} else { // Get any random image
-			$stmt = $GLOBALS['DB']->query("SELECT imagename FROM images WHERE lastupdate > 0 ORDER BY views, RANDOM() LIMIT 1");
+			$stmt = $GLOBALS['DB']->query("SELECT imagename FROM inky_images WHERE lastupdate > 0 ORDER BY views, ".$GLOBALS['CONFIG']['DB_X_RANDOM']." LIMIT 1");
 		}
 		$row = $stmt->fetch(PDO::FETCH_ASSOC);
 		$imagename = $row["imagename"];
 
 		if($button == 5) { // Update view counter
-			$stmt = $GLOBALS['DB']->prepare("UPDATE images SET views = views + 1 WHERE imagename = :imagename");
+			$stmt = $GLOBALS['DB']->prepare("UPDATE inky_images SET views = views + 1 WHERE imagename = :imagename");
 			$stmt->bindValue(':imagename', $imagename, PDO::PARAM_STR);
 			$stmt->execute();
 		}
 
 		// Write History
-		$stmt = $GLOBALS['DB']->prepare("INSERT INTO history (viewed, imagename) VALUES (datetime('now'), :imagename)");
+		$stmt = $GLOBALS['DB']->prepare("INSERT INTO inky_history (viewed, imagename) VALUES (".$GLOBALS['CONFIG']['DB_X_NOW'].", :imagename)");
 		$stmt->bindValue(':imagename', $imagename, PDO::PARAM_STR);
 		$stmt->execute();
 
@@ -76,27 +102,27 @@ if(isset($_REQUEST['inky'])) { // Called by inky.py
 	if(isset($_REQUEST['update'])) { // Scan FS for new images
 		echo '<a href="?"><button>Back</button></a>';
 		// Get lowest View Count
-		$stmt = $GLOBALS['DB']->query("SELECT min(views) -1 as min_views FROM images WHERE views > 0");
+		$stmt = $GLOBALS['DB']->query("SELECT min(views) -1 as min_views FROM inky_images WHERE views > 0");
 		$row = $stmt->fetch(PDO::FETCH_ASSOC);
 		$min_views = $row['min_views'];
 		if(!$min_views) $min_views = 0;
 		// Mark all images as deleted
-		$GLOBALS['DB']->exec("UPDATE images SET lastupdate = 0");
+		$GLOBALS['DB']->exec("UPDATE inky_images SET lastupdate = 0");
 		// Read Directory
 		echo "<table>";
 		$files = glob("./images/*.png");
 		for($i = 0;$i < count($files);$i++) {
-			$stmt = $GLOBALS['DB']->prepare("UPDATE images SET lastupdate = 1 WHERE imagename = :imagename");
+			$stmt = $GLOBALS['DB']->prepare("UPDATE inky_images SET lastupdate = 1 WHERE imagename = :imagename");
 			$stmt->bindValue(':imagename', $files[$i], PDO::PARAM_STR);
 			$stmt->execute();
 			if($stmt->rowCount() == 0) {
-				$stmt = $GLOBALS['DB']->prepare("INSERT INTO images (imagename, views, lastupdate, likeit) VALUES (:imagename, :views, 1, 0)");
+				$stmt = $GLOBALS['DB']->prepare("INSERT INTO inky_images (imagename, views, lastupdate, likeit) VALUES (:imagename, :views, 1, 0)");
 				$stmt->bindValue(':imagename', $files[$i], PDO::PARAM_STR);
 				$stmt->bindValue(':views'    , $min_views, PDO::PARAM_INT);
 				$stmt->execute();
 				echo "<tr style='background-color:yellow;'><td>" . $files[$i] . "</td><td>NEW</td>";
 			} else {
-				$stmt = $GLOBALS['DB']->prepare("SELECT views FROM images WHERE imagename = :imagename");
+				$stmt = $GLOBALS['DB']->prepare("SELECT views FROM inky_images WHERE imagename = :imagename");
 				$stmt->bindValue(':imagename', $files[$i], PDO::PARAM_STR);
 				$stmt->execute();
 				$row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -110,7 +136,7 @@ if(isset($_REQUEST['inky'])) { // Called by inky.py
 		echo '<br/><br/>';
 
 		// Get random inage
-		$stmt = $GLOBALS['DB']->query("SELECT imagename FROM images WHERE lastupdate > 0 ORDER BY views, RANDOM() LIMIT 1");
+		$stmt = $GLOBALS['DB']->query("SELECT imagename FROM inky_images WHERE lastupdate > 0 ORDER BY views, ".$GLOBALS['CONFIG']['DB_X_RANDOM']." LIMIT 1");
 		$row = $stmt->fetch(PDO::FETCH_ASSOC);
 		$imagename = $row["imagename"];
 
@@ -118,15 +144,16 @@ if(isset($_REQUEST['inky'])) { // Called by inky.py
 		echo '<img src="'.$imagename.'" />';
 	} else {
 		// Show list of images
+		echo '<html><head><title>X</title></head><body style="font-family: Tahoma;">';
 		echo '<a href="?update=1"><button>Update Database</button></a>&nbsp;';
 		echo '<a href="?single=1"><button>Get single image</button></a>';
 		echo '<br/><br/>';
 
 		$i = 0;
-		echo '<table style="border: 1px solid black; border-collapse: collapse;">';
-		echo '<tr><th colspan="3" style="font-size: 2em; border-bottom: 1px solid black;">Last Viewed</th></tr>';
+		echo '<table style="border: 1px solid black; border-collapse: collapse; background-color: #444;">';
+		echo '<tr><th colspan="3" style="font-size: 2em; background-color: #BBB; border-bottom: 1px solid black;">Last Viewed</th></tr>';
 		echo '<tr>';
-		$stmt = $GLOBALS['DB']->query("SELECT ih.imagename, ih.viewed, ii.views, ii.likeit FROM history ih JOIN images ii ON ii.imagename = ih.imagename ORDER BY ih.viewed DESC LIMIT 6");
+		$stmt = $GLOBALS['DB']->query("SELECT ih.imagename, ih.viewed, ii.views, ii.likeit FROM inky_history ih JOIN inky_images ii ON ii.imagename = ih.imagename ORDER BY ih.viewed DESC LIMIT 6");
 		while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 			if($i > 0 & $i++ % 3 == 0) echo "</tr><tr>";
 			echo '<td style=""><div style="position: relative;"><img src="'.$row['imagename'].'" /><div style="position: absolute; bottom: 0px; left: 0px; width: 100%; color:white; text-align: center; white-space: nowrap; overflow: hidden; background-color: #4449;">'.$row['viewed'].' / Views: '.$row['views'].' / Likes: '.$row['likeit'].'<br/>'.basename($row['imagename']).'</div></div></td>';
@@ -135,12 +162,14 @@ if(isset($_REQUEST['inky'])) { // Called by inky.py
 
 		echo '<br/><br/>';
 
-		$i = 0;
-		echo '<table style="border: 1px solid black; border-collapse: collapse;">';
-		echo '<tr><th colspan="3" style="font-size: 2em; border-bottom: 1px solid black;">Favorits</th></tr>';
+		$i = 0; $l;
+		echo '<table style="border: 1px solid black; border-collapse: collapse; background-color: #444;">';
+		echo '<tr><th colspan="3" style="font-size: 2em; background-color: #BBB; border-bottom: 1px solid black;">Favorits</th></tr>';
 		echo '<tr>';
-		$stmt = $GLOBALS['DB']->query("SELECT imagename, views, likeit FROM images WHERE likeit > 0 ORDER BY likeit, imagename");
+		$stmt = $GLOBALS['DB']->query("SELECT imagename, views, likeit FROM inky_images WHERE likeit > 0 ORDER BY likeit DESC, imagename ASC");
 		while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+			if(!isset($l)) $l = $row['likeit'];
+			if($row['likeit'] != $l) {$l = $row['likeit']; echo '</tr><tr style="border-top: 1px solid black;">'; $i = 0;}
 			if($i > 0 & $i++ % 3 == 0) echo "</tr><tr>";
 			echo '<td style=""><div style="position: relative;"><img src="'.$row['imagename'].'" /><div style="position: absolute; bottom: 0px; left: 0px; width: 100%; color:white; text-align: center; white-space: nowrap; overflow: hidden; background-color: #4449;">Views: '.$row['views'].' / Likes: '.$row['likeit'].'<br/>'.basename($row['imagename']).'</div></div></td>';
 		}
