@@ -100,6 +100,7 @@ if(isset($_REQUEST['inky'])) { // Called by inky.py
 } else {
 	// Called by Browser
 	if(isset($_REQUEST['update'])) { // Scan FS for new images
+		echo '<html><head><title>phpSimpleInkyImageServer</title></head><body style="font-family: Tahoma;">';
 		echo '<a href="?"><button>Back</button></a>';
 		// Get lowest View Count
 		$stmt = $GLOBALS['DB']->query("SELECT min(views) -1 as min_views FROM inky_images WHERE views > 0");
@@ -131,7 +132,9 @@ if(isset($_REQUEST['inky'])) { // Called by inky.py
 			echo "</tr>";
 		}
 		echo "</table>";
+		echo '</body></html>';
 	} else if(isset($_REQUEST['single'])) { // Show random image
+		echo '<html><head><title>phpSimpleInkyImageServer</title></head><body style="font-family: Tahoma;">';
 		echo '<a href="?"><button>Back</button></a>';
 		echo '<br/><br/>';
 
@@ -142,9 +145,10 @@ if(isset($_REQUEST['inky'])) { // Called by inky.py
 
 		// Output
 		echo '<img src="'.$imagename.'" />';
+		echo '</body></html>';
 	} else {
 		// Show list of images
-		echo '<html><head><title>X</title></head><body style="font-family: Tahoma;">';
+		echo '<html><head><title>phpSimpleInkyImageServer</title></head><body style="font-family: Tahoma;">';
 		echo '<a href="?update=1"><button>Update Database</button></a>&nbsp;';
 		echo '<a href="?single=1"><button>Get single image</button></a>';
 		echo '<br/><br/>';
@@ -174,7 +178,7 @@ if(isset($_REQUEST['inky'])) { // Called by inky.py
 			echo '<td style=""><div style="position: relative;"><img src="'.$row['imagename'].'" /><div style="position: absolute; bottom: 0px; left: 0px; width: 100%; color:white; text-align: center; white-space: nowrap; overflow: hidden; background-color: #4449;">Views: '.$row['views'].' / Likes: '.$row['likeit'].'<br/>'.basename($row['imagename']).'</div></div></td>';
 		}
 		echo "</tr></table>";
-
+		echo '</body></html>';
 	}
 }
 
