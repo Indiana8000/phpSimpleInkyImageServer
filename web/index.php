@@ -76,7 +76,7 @@ if(isset($_REQUEST['inky'])) { // Called by inky.py
 		$row = $stmt->fetch(PDO::FETCH_ASSOC);
 		$imagename = $row["imagename"];
 
-		if($button == 5) { // Update view counter
+		if($button == 1 || $button == 5) { // Update view counter
 			$stmt = $GLOBALS['DB']->prepare("UPDATE inky_images SET views = views + 1 WHERE imagename = :imagename");
 			$stmt->bindValue(':imagename', $imagename, PDO::PARAM_STR);
 			$stmt->execute();
