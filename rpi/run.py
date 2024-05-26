@@ -68,36 +68,42 @@ def handle_buttonClear(pin):
 
 # Button handler loading
 def handle_buttonLoad(pin):
-    global countdown
-    print("Button {} - Loading - Start".format(pin))
-    running = False
-    countdown = slideshow
-    r = requests.get("{}&button={}".format(url, pin), stream=True)
-    r.raw.decode_content = True
-    image = Image.open(r.raw)
-    resizedimage = image.resize(inky.resolution)
-    saturation = brightness(resizedimage)
-    inky.set_image(resizedimage, saturation=saturation)
-    print("Button {} - Loading - Got Image".format(pin))
-    inky.show()
-    running = True
-    print("Button {} - Loading - Done".format(pin))
+    global countdown, running
+    if running:
+        print("Button {} - Loading - Start".format(pin))
+        running = False
+        countdown = slideshow
+        r = requests.get("{}&button={}".format(url, pin), stream=True)
+        r.raw.decode_content = True
+        image = Image.open(r.raw)
+        resizedimage = image.resize(inky.resolution)
+        saturation = brightness(resizedimage)
+        inky.set_image(resizedimage, saturation=saturation)
+        print("Button {} - Loading - Got Image".format(pin))
+        inky.show()
+        running = True
+        print("Button {} - Loading - Done".format(pin))
+    else:
+        print("Button {} - Loading - Ignored!".format(pin))
 
+# Button like
 def handle_buttonLikeit(pin):
     print("Button {} - LikeIT - Start".format(pin))
     r = requests.get("{}&likeit=1".format(url), stream=True)
     print("Button {} - LikeIT - Done".format(pin))
 
+# Button dislike
 def handle_buttonDisLike(pin):
     print("Button {} - DisLikeIT - Start".format(pin))
     r = requests.get("{}&likeit=-1".format(url), stream=True)
     print("Button {} - DisLikeIT - Done".format(pin))
 
-GPIO.add_event_detect( 5, GPIO.FALLING, handle_buttonLoad    , bouncetime=250)
-GPIO.add_event_detect( 6, GPIO.FALLING, handle_buttonLoad    , bouncetime=250)
-GPIO.add_event_detect(16, GPIO.FALLING, handle_buttonLikeit  , bouncetime=250)
-GPIO.add_event_detect(24, GPIO.FALLING, handle_buttonDisLike , bouncetime=250)
+GPIO.add_event_detect( 5, GPIO.FALLING, handle_buttonLoad    , bouncetime=300)
+GPIO.add_event_detect( 6, GPIO.FALLING, handle_buttonLoad    , bouncetime=200)
+GPIO.add_event_detect(16, GPIO.FALLING, handle_buttonLikeit  , bouncetime=300)
+GPIO.add_event_detect(24, GPIO.FALLING, handle_buttonDisLike , bouncetime=300)
 
+# Main Loop
 print("Starting ...")
 while True:
     if running:
