@@ -1,5 +1,5 @@
 # phpSimpleInkyImageServer
-A simple php script to supply your Pimoroni Inky e-paper with images
+A simple php script to supply your [Pimoroni Inky e-paper](https://github.com/pimoroni/inky) with images 
 
 # Features
 - Change the image every x minutes

@@ -76,7 +76,22 @@ def handle_buttonLoad(pin):
         r = requests.get("{}&button={}".format(url, pin), stream=True)
         r.raw.decode_content = True
         image = Image.open(r.raw)
-        resizedimage = image.resize(inky.resolution)
+        if image.size != inky.resolution:
+            # Resize Image by Aspection Ratio
+            aspection_ratio_target = inky.resolution[0] / inky.resolution[1]
+            aspection_ratio_source = image.size[0] / image.size[1]
+            if aspection_ratio_source < aspection_ratio_target:
+                height = inky.resolution[1] * image.size[0] / inky.resolution[0]
+                height = (image.size[1] - height) / 2
+                box = (0, height, image.size[0], image.size[1] - height)
+            else:
+                width = inky.resolution[0] * image.size[1] / inky.resolution[1]
+                width = (image.size[0] - width) / 2
+                box = (width, 0, image.size[0] - width, image.size[1])
+            resizedimage = image.resize(inky.resolution, Image.LANCZOS, box)
+        else:
+            resizedimage = image.copy()
+        # Calculate Saturation
         saturation = brightness(resizedimage)
         inky.set_image(resizedimage, saturation=saturation)
         print("Button {} - Loading - Got Image".format(pin))
