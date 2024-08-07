@@ -2,11 +2,15 @@
 // Initiate Configuration Array
 $GLOBALS['CONFIG'] = Array();
 
+// URL to your RPI running run.py
+$GLOBALS['CONFIG']['INKY_URL']    = 'http://192.168.5.31:8080';
+
 // Database Connection SQLite
 $GLOBALS['CONFIG']['DB_TYPE']     = 'sqlite';
 $GLOBALS['CONFIG']['DB_DSN']      = 'sqlite:inky.sqlite';
 $GLOBALS['CONFIG']['DB_X_RANDOM'] = 'RANDOM()';
 $GLOBALS['CONFIG']['DB_X_NOW']    = "DATETIME('now')";
+
 
 // Database Connection MySQL
 /*
@@ -149,18 +153,22 @@ if(isset($_REQUEST['inky'])) { // Called by inky.py
 	} else {
 		// Show list of images
 		echo '<html><head><title>phpSimpleInkyImageServer</title></head><body style="font-family: Tahoma;">';
+		echo 'Browser: ';
 		echo '<a href="?update=1"><button>Update Database</button></a>&nbsp;';
-		echo '<a href="?single=1"><button>Get single image</button></a>';
+		echo '<a href="?single=1"><button>Display single image</button></a>&nbsp;';
+		echo 'Inky: ';
+		echo '<a href="' . $GLOBALS['CONFIG']['INKY_URL'] . '/next/" target="_blank"><button>Next image</button></a>&nbsp;';
+		echo '<a href="' . $GLOBALS['CONFIG']['INKY_URL'] . '/clear/" target="_blank"><button>Clear screen</button></a>&nbsp;';
 		echo '<br/><br/>';
 
 		$i = 0;
 		echo '<table style="border: 1px solid black; border-collapse: collapse; background-color: #444;">';
 		echo '<tr><th colspan="3" style="font-size: 2em; background-color: #BBB; border-bottom: 1px solid black;">Last Viewed</th></tr>';
 		echo '<tr>';
-		$stmt = $GLOBALS['DB']->query("SELECT ih.imagename, ih.viewed, ii.views, ii.likeit FROM inky_history ih JOIN inky_images ii ON ii.imagename = ih.imagename ORDER BY ih.viewed DESC LIMIT 6");
+		$stmt = $GLOBALS['DB']->query("SELECT ih.imagename, ii.views, ii.likeit, ih.viewed FROM inky_history ih JOIN inky_images ii ON ii.imagename = ih.imagename ORDER BY ih.viewed DESC LIMIT 9");
 		while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 			if($i > 0 & $i++ % 3 == 0) echo "</tr><tr>";
-			echo '<td style=""><div style="position: relative;"><img src="'.$row['imagename'].'" /><div style="position: absolute; bottom: 0px; left: 0px; width: 100%; color:white; text-align: center; white-space: nowrap; overflow: hidden; background-color: #4449;">'.$row['viewed'].' / Views: '.$row['views'].' / Likes: '.$row['likeit'].'<br/>'.basename($row['imagename']).'</div></div></td>';
+			echo '<td style=""><div style="position: relative;"><img src="'.$row['imagename'].'" /><div style="position: absolute; bottom: 0px; left: 0px; width: 100%; color:white; text-align: center; white-space: nowrap; overflow: hidden; background-color: #4449;">'.$row['viewed'].' / Views: '.$row['views'].' / Likes: '.$row['likeit'].'<br/>'.basename($row['imagename']).'</div><div style="position: absolute; bottom: 0px; right: 5px; white-space: nowrap; overflow: hidden;"><a style="text-decoration: none;" target="_blank" href="' . $GLOBALS['CONFIG']['INKY_URL'] . '/show/' . $row['imagename'] . '">Show</a><br>&nbsp;</div></div></td>';
 		}
 		echo '</tr></table>';
 
@@ -170,12 +178,12 @@ if(isset($_REQUEST['inky'])) { // Called by inky.py
 		echo '<table style="border: 1px solid black; border-collapse: collapse; background-color: #444;">';
 		echo '<tr><th colspan="3" style="font-size: 2em; background-color: #BBB; border-bottom: 1px solid black;">Favorits</th></tr>';
 		echo '<tr>';
-		$stmt = $GLOBALS['DB']->query("SELECT imagename, views, likeit FROM inky_images WHERE likeit > 0 ORDER BY likeit DESC, imagename ASC");
+		$stmt = $GLOBALS['DB']->query("SELECT ii.imagename, ii.views, ii.likeit, MAX(ih.viewed) as viewed FROM inky_images ii LEFT JOIN inky_history ih ON ii.imagename = ih.imagename WHERE ii.likeit > 0 GROUP BY ii.imagename, ii.views, ii.likeit ORDER BY ii.likeit DESC, ii.imagename ASC");
 		while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 			if(!isset($l)) $l = $row['likeit'];
 			if($row['likeit'] != $l) {$l = $row['likeit']; echo '</tr><tr style="border-top: 1px solid black;">'; $i = 0;}
 			if($i > 0 & $i++ % 3 == 0) echo "</tr><tr>";
-			echo '<td style=""><div style="position: relative;"><img src="'.$row['imagename'].'" /><div style="position: absolute; bottom: 0px; left: 0px; width: 100%; color:white; text-align: center; white-space: nowrap; overflow: hidden; background-color: #4449;">Views: '.$row['views'].' / Likes: '.$row['likeit'].'<br/>'.basename($row['imagename']).'</div></div></td>';
+			echo '<td style=""><div style="position: relative;"><img src="'.$row['imagename'].'" /><div style="position: absolute; bottom: 0px; left: 0px; width: 100%; color:white; text-align: center; white-space: nowrap; overflow: hidden; background-color: #4449;">'.$row['viewed'].' / Views: '.$row['views'].' / Likes: '.$row['likeit'].'<br/>'.basename($row['imagename']).'</div><div style="position: absolute; bottom: 0px; right: 5px; white-space: nowrap; overflow: hidden;"><a style="text-decoration: none;" target="_blank" href="' . $GLOBALS['CONFIG']['INKY_URL'] . '/show/' . $row['imagename'] . '">Show</a><br>&nbsp;</div></div></td>';
 		}
 		echo "</tr></table>";
 		echo '</body></html>';
