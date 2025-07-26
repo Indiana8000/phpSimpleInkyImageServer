@@ -75,12 +75,14 @@ if(isset($_REQUEST['inky'])) { // Called by inky.py
 		if($button == 6) { // Get random image from favorit list
 			$stmt = $GLOBALS['DB']->query("SELECT imagename FROM inky_images WHERE lastupdate > 0 AND likeit > 0 ORDER BY ".$GLOBALS['CONFIG']['DB_X_RANDOM']." LIMIT 1");
 		} else { // Get any random image
-			$stmt = $GLOBALS['DB']->query("SELECT imagename FROM inky_images WHERE lastupdate > 0 ORDER BY views, ".$GLOBALS['CONFIG']['DB_X_RANDOM']." LIMIT 1");
+			$stmt = $GLOBALS['DB']->query("SELECT max(views) - min(views) + 1 as views_count FROM inky_images WHERE lastupdate > 0");
+			$row = $stmt->fetch(PDO::FETCH_ASSOC);
+			$stmt = $GLOBALS['DB']->query("SELECT imagename FROM inky_images WHERE lastupdate > 0 ORDER BY views + FLOOR(".$GLOBALS['CONFIG']['DB_X_RANDOM']." * ".$row['views_count']."), ".$GLOBALS['CONFIG']['DB_X_RANDOM']." LIMIT 1");
 		}
 		$row = $stmt->fetch(PDO::FETCH_ASSOC);
 		$imagename = $row["imagename"];
 
-		if($button == 1 || $button == 5) { // Update view counter
+		if($button == 1 || $button == 2 || $button == 5) { // Update view counter
 			$stmt = $GLOBALS['DB']->prepare("UPDATE inky_images SET views = views + 1 WHERE imagename = :imagename");
 			$stmt->bindValue(':imagename', $imagename, PDO::PARAM_STR);
 			$stmt->execute();
@@ -107,7 +109,7 @@ if(isset($_REQUEST['inky'])) { // Called by inky.py
 		echo '<html><head><title>phpSimpleInkyImageServer</title></head><body style="font-family: Tahoma;">';
 		echo '<a href="?"><button>Back</button></a>';
 		// Get lowest View Count
-		$stmt = $GLOBALS['DB']->query("SELECT min(views) -1 as min_views FROM inky_images WHERE views > 0");
+		$stmt = $GLOBALS['DB']->query("SELECT min(views) - 1 as min_views FROM inky_images WHERE views > 0");
 		$row = $stmt->fetch(PDO::FETCH_ASSOC);
 		$min_views = $row['min_views'];
 		if(!$min_views) $min_views = 0;
@@ -127,27 +129,30 @@ if(isset($_REQUEST['inky'])) { // Called by inky.py
 				$stmt->execute();
 				echo "<tr style='background-color:yellow;'><td>" . $files[$i] . "</td><td>NEW</td>";
 			} else {
-				$stmt = $GLOBALS['DB']->prepare("SELECT views FROM inky_images WHERE imagename = :imagename");
-				$stmt->bindValue(':imagename', $files[$i], PDO::PARAM_STR);
-				$stmt->execute();
-				$row = $stmt->fetch(PDO::FETCH_ASSOC);
-				echo "<tr><td>" . $files[$i] . "</td><td>".$row['views']."</td>";
+				//$stmt = $GLOBALS['DB']->prepare("SELECT views FROM inky_images WHERE imagename = :imagename");
+				//$stmt->bindValue(':imagename', $files[$i], PDO::PARAM_STR);
+				//$stmt->execute();
+				//$row = $stmt->fetch(PDO::FETCH_ASSOC);
+				//echo "<tr><td>" . $files[$i] . "</td><td>".$row['views']."</td>";
+				echo "<tr><td>" . $files[$i] . "</td><td>-</td>";
 			}
 			echo "</tr>";
 		}
 		echo "</table>";
 		echo '</body></html>';
 	} else if(isset($_REQUEST['single'])) { // Show random image
-		echo '<html><head><title>phpSimpleInkyImageServer</title></head><body style="font-family: Tahoma;">';
-		echo '<a href="?"><button>Back</button></a>';
-		echo '<br/><br/>';
-
 		// Get random inage
-		$stmt = $GLOBALS['DB']->query("SELECT imagename FROM inky_images WHERE lastupdate > 0 ORDER BY views, ".$GLOBALS['CONFIG']['DB_X_RANDOM']." LIMIT 1");
+		$stmt = $GLOBALS['DB']->query("SELECT max(views) - min(views) + 1 as views_count FROM inky_images WHERE lastupdate > 0");
+		$row = $stmt->fetch(PDO::FETCH_ASSOC);
+		$stmt = $GLOBALS['DB']->query("SELECT imagename FROM inky_images WHERE lastupdate > 0 ORDER BY views + FLOOR(".$GLOBALS['CONFIG']['DB_X_RANDOM']." * ".$row['views_count']."), ".$GLOBALS['CONFIG']['DB_X_RANDOM']." LIMIT 1");
 		$row = $stmt->fetch(PDO::FETCH_ASSOC);
 		$imagename = $row["imagename"];
 
 		// Output
+		echo '<html><head><title>phpSimpleInkyImageServer</title></head><body style="font-family: Tahoma;">';
+		echo '<a href="?"><button>Back</button></a>';
+		echo '<a style="text-decoration: none;" target="_blank" href="' . $GLOBALS['CONFIG']['INKY_URL'] . '/show/' . $imagename . '"><button>Show</button></a>';
+		echo '<br/><br/>';
 		echo '<img src="'.$imagename.'" />';
 		echo '</body></html>';
 	} else {
@@ -162,7 +167,7 @@ if(isset($_REQUEST['inky'])) { // Called by inky.py
 		echo '<br/><br/>';
 
 		$i = 0;
-		echo '<table style="border: 1px solid black; border-collapse: collapse; background-color: #444;">';
+		echo '<table style="border: 1px solid black; border-collapse: collapse; background-color: #333;">';
 		echo '<tr><th colspan="3" style="font-size: 2em; background-color: #BBB; border-bottom: 1px solid black;">Last Viewed</th></tr>';
 		echo '<tr>';
 		$stmt = $GLOBALS['DB']->query("SELECT ih.imagename, ii.views, ii.likeit, ih.viewed FROM inky_history ih JOIN inky_images ii ON ii.imagename = ih.imagename ORDER BY ih.viewed DESC LIMIT 9");
@@ -175,13 +180,21 @@ if(isset($_REQUEST['inky'])) { // Called by inky.py
 		echo '<br/><br/>';
 
 		$i = 0; $l;
-		echo '<table style="border: 1px solid black; border-collapse: collapse; background-color: #444;">';
-		echo '<tr><th colspan="3" style="font-size: 2em; background-color: #BBB; border-bottom: 1px solid black;">Favorits</th></tr>';
+		echo '<table style="border: 1px solid black; border-collapse: collapse; background-color: #333;">';
+		echo '<tr><th colspan="3" style="font-size: 2em; background-color: #DDD; border-bottom: 1px solid black;">Favorits</th></tr>';
 		echo '<tr>';
 		$stmt = $GLOBALS['DB']->query("SELECT ii.imagename, ii.views, ii.likeit, MAX(ih.viewed) as viewed FROM inky_images ii LEFT JOIN inky_history ih ON ii.imagename = ih.imagename WHERE ii.likeit > 0 GROUP BY ii.imagename, ii.views, ii.likeit ORDER BY ii.likeit DESC, ii.imagename ASC");
 		while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-			if(!isset($l)) $l = $row['likeit'];
-			if($row['likeit'] != $l) {$l = $row['likeit']; echo '</tr><tr style="border-top: 1px solid black;">'; $i = 0;}
+			if(!isset($l)) {
+				$l = $row['likeit'];
+				echo '<th colspan="3" style="background-color: #BBB;">' . str_repeat(" --- ".$l, 5).' --- </th></tr><tr>';
+			}
+			if($row['likeit'] != $l) {
+				$l = $row['likeit'];
+				echo '</tr><tr style="border-top: 1px solid black;">';
+				echo '<th colspan="3" style="background-color: #BBB;">' . str_repeat(" --- ".$l, 5).' --- </th></tr><tr>';
+				$i = 0;
+			}
 			if($i > 0 & $i++ % 3 == 0) echo "</tr><tr>";
 			echo '<td style=""><div style="position: relative;"><img src="'.$row['imagename'].'" /><div style="position: absolute; bottom: 0px; left: 0px; width: 100%; color:white; text-align: center; white-space: nowrap; overflow: hidden; background-color: #4449;">'.$row['viewed'].' / Views: '.$row['views'].' / Likes: '.$row['likeit'].'<br/>'.basename($row['imagename']).'</div><div style="position: absolute; bottom: 0px; right: 5px; white-space: nowrap; overflow: hidden;"><a style="text-decoration: none;" target="_blank" href="' . $GLOBALS['CONFIG']['INKY_URL'] . '/show/' . $row['imagename'] . '">Show</a><br>&nbsp;</div></div></td>';
 		}
