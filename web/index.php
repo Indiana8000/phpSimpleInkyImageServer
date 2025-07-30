@@ -75,9 +75,9 @@ if(isset($_REQUEST['inky'])) { // Called by inky.py
 		if($button == 6) { // Get random image from favorit list
 			$stmt = $GLOBALS['DB']->query("SELECT imagename FROM inky_images WHERE lastupdate > 0 AND likeit > 0 ORDER BY ".$GLOBALS['CONFIG']['DB_X_RANDOM']." LIMIT 1");
 		} else { // Get any random image
-			$stmt = $GLOBALS['DB']->query("SELECT max(views) - min(views) + 1 as views_count FROM inky_images WHERE lastupdate > 0");
+			$stmt = $GLOBALS['DB']->query("SELECT max(views) - min(views) + 1 as views_count FROM inky_images WHERE lastupdate > 0 AND likeit > -2");
 			$row = $stmt->fetch(PDO::FETCH_ASSOC);
-			$stmt = $GLOBALS['DB']->query("SELECT imagename FROM inky_images WHERE lastupdate > 0 ORDER BY views + FLOOR(".$GLOBALS['CONFIG']['DB_X_RANDOM']." * ".$row['views_count']."), ".$GLOBALS['CONFIG']['DB_X_RANDOM']." LIMIT 1");
+			$stmt = $GLOBALS['DB']->query("SELECT imagename FROM inky_images WHERE lastupdate > 0 AND likeit > -2 ORDER BY views + FLOOR(".$GLOBALS['CONFIG']['DB_X_RANDOM']." * ".$row['views_count']."), ".$GLOBALS['CONFIG']['DB_X_RANDOM']." LIMIT 1");
 		}
 		$row = $stmt->fetch(PDO::FETCH_ASSOC);
 		$imagename = $row["imagename"];
@@ -183,7 +183,7 @@ if(isset($_REQUEST['inky'])) { // Called by inky.py
 		echo '<table style="border: 1px solid black; border-collapse: collapse; background-color: #333;">';
 		echo '<tr><th colspan="3" style="font-size: 2em; background-color: #DDD; border-bottom: 1px solid black;">Favorits</th></tr>';
 		echo '<tr>';
-		$stmt = $GLOBALS['DB']->query("SELECT ii.imagename, ii.views, ii.likeit, MAX(ih.viewed) as viewed FROM inky_images ii LEFT JOIN inky_history ih ON ii.imagename = ih.imagename WHERE ii.likeit > 0 GROUP BY ii.imagename, ii.views, ii.likeit ORDER BY ii.likeit DESC, ii.imagename ASC");
+		$stmt = $GLOBALS['DB']->query("SELECT ii.imagename, ii.views, ii.likeit, MAX(ih.viewed) as viewed FROM inky_images ii LEFT JOIN inky_history ih ON ii.imagename = ih.imagename WHERE ii.likeit <> 0 GROUP BY ii.imagename, ii.views, ii.likeit ORDER BY ii.likeit DESC, ii.imagename ASC");
 		while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 			if(!isset($l)) {
 				$l = $row['likeit'];
@@ -192,7 +192,11 @@ if(isset($_REQUEST['inky'])) { // Called by inky.py
 			if($row['likeit'] != $l) {
 				$l = $row['likeit'];
 				echo '</tr><tr style="border-top: 1px solid black;">';
-				echo '<th colspan="3" style="background-color: #BBB;">' . str_repeat(" --- ".$l, 5).' --- </th></tr><tr>';
+				if($l > 0) {
+					echo '<th colspan="3" style="background-color: #BBB;">' . str_repeat(" --- ".$l, 5).' --- </th></tr><tr>';
+				} else {
+					echo '<th colspan="3" style="background-color: #B55; color: #F00;">' . str_repeat(" --- ".$l, 5).' --- </th></tr><tr>';
+				}
 				$i = 0;
 			}
 			if($i > 0 & $i++ % 3 == 0) echo "</tr><tr>";
