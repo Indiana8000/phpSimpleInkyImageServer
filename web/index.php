@@ -3,7 +3,7 @@
 $GLOBALS['CONFIG'] = Array();
 
 // URL to your RPI running run.py
-$GLOBALS['CONFIG']['INKY_URL']    = 'http://192.168.5.31:8080';
+$GLOBALS['CONFIG']['INKY_URL']    = 'http://192.168.1.2:8080';
 
 // Database Connection SQLite
 $GLOBALS['CONFIG']['DB_TYPE']     = 'sqlite';

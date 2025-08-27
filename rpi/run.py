@@ -194,9 +194,9 @@ def webserver_loop():
     webServer.serve_forever()
 
 # Main
-print("Starting ...")
-thread_slideshow = Thread(target=slideshow_loop)
-thread_webserver = Thread(target=webserver_loop)
-thread_slideshow.start()
-thread_webserver.start()
-# END
+if __name__ == "__main__":
+    print("Starting ...")
+    thread_slideshow = Thread(target=slideshow_loop)
+    thread_webserver = Thread(target=webserver_loop)
+    thread_slideshow.start()
+    thread_webserver.start()
