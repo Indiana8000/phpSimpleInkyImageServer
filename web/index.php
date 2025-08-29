@@ -49,9 +49,9 @@ try {
 		$GLOBALS['DB']->exec("CREATE TABLE inky_images   (imagename TEXT, views NUMBER, likeit NUMBER, lastupdate NUMBER)");
 		$GLOBALS['DB']->exec("CREATE TABLE inky_history  (imagename TEXT, viewed TEXT)");
 	} else if($GLOBALS['CONFIG']['DB_TYPE'] == 'mysql') {
-		$GLOBALS['DB']->exec("CREATE TABLE inky_settings (s_key varchar(250), s_value varchar(250)) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci");
-		$GLOBALS['DB']->exec("CREATE TABLE inky_images   (imagename varchar(250), views int(11), likeit int(11), lastupdate int(1)) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci");
-		$GLOBALS['DB']->exec("CREATE TABLE inky_history  (imagename varchar(250), viewed datetime) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci");
+		$GLOBALS['DB']->exec("CREATE TABLE inky_settings (s_key varchar(250), s_value varchar(250)) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci PAGE_CHECKSUM=1");
+		$GLOBALS['DB']->exec("CREATE TABLE inky_images   (imagename varchar(250), views int(11), likeit int(11), lastupdate int(1)) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci PAGE_CHECKSUM=1");
+		$GLOBALS['DB']->exec("CREATE TABLE inky_history  (imagename varchar(250), viewed datetime) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci PAGE_CHECKSUM=1");
 	}
 }
 
@@ -60,18 +60,24 @@ if(isset($_REQUEST['inky'])) { // Called by inky.py
 	if(isset($_REQUEST['likeit'])) { // Like it +/- button pressed
 		$likeit = 1; if(intval($_REQUEST['likeit']) < 0) $likeit = -1;
 		// Get Last Image
-		$stmt = $GLOBALS['DB']->query("SELECT imagename FROM inky_history ORDER BY viewed DESC LIMIT 1");
-		$row = $stmt->fetch(PDO::FETCH_ASSOC);
-		$imagename = $row["imagename"];
+        if(isset($_REQUEST['image'])) {
+            $imagename = $_REQUEST['image'];
+        } else {
+            $stmt = $GLOBALS['DB']->query("SELECT imagename FROM inky_history ORDER BY viewed DESC LIMIT 1");
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $imagename = $row["imagename"];
+        }
 		// Update favorit counter
 		$stmt = $GLOBALS['DB']->prepare("UPDATE inky_images SET likeit = likeit + :likeit WHERE imagename = :imagename");
-		$stmt->bindValue(':likeit'   , $likeit  , PDO::PARAM_INT);
-		$stmt->bindValue(':imagename',$imagename, PDO::PARAM_STR);
+		$stmt->bindValue(':likeit'   , $likeit   , PDO::PARAM_INT);
+		$stmt->bindValue(':imagename', $imagename, PDO::PARAM_STR);
 		$stmt->execute();
 		echo $imagename;
 	} else { // Any other button pressed
 		// Get pressed Button
 		$button = 0; if(isset($_REQUEST['button'])) $button = intval($_REQUEST['button']);
+        // TBD: 
+        // Use $_REQUEST['resx'] and $_REQUEST['resy'] for different sources
 		if($button == 6) { // Get random image from favorit list
 			$stmt = $GLOBALS['DB']->query("SELECT imagename FROM inky_images WHERE lastupdate > 0 AND likeit > 0 ORDER BY ".$GLOBALS['CONFIG']['DB_X_RANDOM']." LIMIT 1");
 		} else { // Get any random image
@@ -93,15 +99,8 @@ if(isset($_REQUEST['inky'])) { // Called by inky.py
 		$stmt->bindValue(':imagename', $imagename, PDO::PARAM_STR);
 		$stmt->execute();
 
-		// Output Image
-		$im = imagecreatefrompng($imagename);
-		if($e = error_get_last()) {
-			print_r($e);		
-		} else {
-			header('Content-type: image/png');
-			ImagePNG($im);
-			ImageDestroy($im);
-		}
+		// Output Image Name (Binary will be loaded directly with extra call)
+        echo $imagename;
 	}
 } else {
 	// Called by Browser
@@ -109,7 +108,7 @@ if(isset($_REQUEST['inky'])) { // Called by inky.py
 		echo '<html><head><title>phpSimpleInkyImageServer</title></head><body style="font-family: Tahoma;">';
 		echo '<a href="?"><button>Back</button></a>';
 		// Get lowest View Count
-		$stmt = $GLOBALS['DB']->query("SELECT min(views) - 1 as min_views FROM inky_images WHERE views > 0");
+		$stmt = $GLOBALS['DB']->query("SELECT min(views) as min_views FROM inky_images WHERE views > 0");
 		$row = $stmt->fetch(PDO::FETCH_ASSOC);
 		$min_views = $row['min_views'];
 		if(!$min_views) $min_views = 0;
@@ -129,11 +128,6 @@ if(isset($_REQUEST['inky'])) { // Called by inky.py
 				$stmt->execute();
 				echo "<tr style='background-color:yellow;'><td>" . $files[$i] . "</td><td>NEW</td>";
 			} else {
-				//$stmt = $GLOBALS['DB']->prepare("SELECT views FROM inky_images WHERE imagename = :imagename");
-				//$stmt->bindValue(':imagename', $files[$i], PDO::PARAM_STR);
-				//$stmt->execute();
-				//$row = $stmt->fetch(PDO::FETCH_ASSOC);
-				//echo "<tr><td>" . $files[$i] . "</td><td>".$row['views']."</td>";
 				echo "<tr><td>" . $files[$i] . "</td><td>-</td>";
 			}
 			echo "</tr>";
