@@ -14,17 +14,17 @@ from inky.inky_uc8159 import CLEAN
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from threading import Thread
 
-# How often to change
+# How long in minutes a image should be displayed
 slideshow = 20
 
 # Where to get the images: remote / local
 mode = "remote"
 
-# Local/Offline Parameters
+# Local / Offline Parameters
 image_path = "images"
 image_history_max = 15
 
-# Remote/Online Parameters
+# Remote / Online Parameters
 url_base = "http://192.168.5.21/inky/"
 url_inky = url_base + "index.php?inky=1"
 
@@ -98,7 +98,7 @@ def resizeImage(image, resolution):
         resizedimage = image.copy()
     return resizedimage
 
-def getSaturationByBrifhtness(image):
+def getSaturationByBrightness(image):
     stat = ImageStat.Stat(image)
     r,g,b = stat.mean
     sat = math.sqrt(0.241*(r**2) + 0.691*(g**2) + 0.068*(b**2))
@@ -116,7 +116,7 @@ def getSaturationByBrifhtness(image):
 # Show image on screen +Resize +Saturation
 def showImage(image):
     image = resizeImage(image, inky.resolution)
-    saturation = getSaturationByBrifhtness(image)
+    saturation = getSaturationByBrightness(image)
     inky.set_image(image, saturation=saturation)
     inky.show()
     print("showImage - Done")

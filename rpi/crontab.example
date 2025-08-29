@@ -1,1 +1,1 @@
-@reboot	~/.virtualenvs/pimoroni/bin/python ~/run_offline.py >>/tmp/run_inky.log 2>&1
+@reboot	~/.virtualenvs/pimoroni/bin/python ~/run.py >>/tmp/run_inky.log 2>&1
