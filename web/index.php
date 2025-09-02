@@ -116,7 +116,7 @@ if(isset($_REQUEST['inky'])) { // Called by inky.py
 		$GLOBALS['DB']->exec("UPDATE inky_images SET lastupdate = 0");
 		// Read Directory
 		echo "<table>";
-		$files = glob("./images/*.png");
+		$files = glob("./*/*.{png,jpg,jpeg}");
 		for($i = 0;$i < count($files);$i++) {
 			$stmt = $GLOBALS['DB']->prepare("UPDATE inky_images SET lastupdate = 1 WHERE imagename = :imagename");
 			$stmt->bindValue(':imagename', $files[$i], PDO::PARAM_STR);

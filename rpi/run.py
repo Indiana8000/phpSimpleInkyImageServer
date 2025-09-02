@@ -37,7 +37,7 @@ running = True
 countdown = slideshow / 4
 
 # Init Inky Display
-inky = auto(ask_user=True, verbose=True)
+inky = auto(verbose=True)
 saturation = 0.5
 
 
@@ -111,6 +111,7 @@ def getSaturationByBrightness(image):
         saturation = 0.75
     if sat > 180:
         saturation = 1.0
+    print("getSaturationByBrightness - {}".format(saturation))
     return saturation
 
 # Show image on screen +Resize +Saturation
@@ -179,16 +180,20 @@ def handle_buttonDisLike(pin):
     print("Button {} - DisLikeIT - Done - {}".format(pin, r.url))
 
 # Define GPIO Buttons
-BUTTONS = [5, 6, 16, 24]
 # LABELS = ['A', 'B', 'C', 'D']
+if inky.eeprom.display_variant == 21:
+    BUTTONS = [5, 6, 25, 24]
+else:
+    BUTTONS = [5, 6, 16, 24]
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(BUTTONS, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 # Register Events
-GPIO.add_event_detect( 5, GPIO.FALLING, handle_buttonLoad    , bouncetime=300)
-GPIO.add_event_detect( 6, GPIO.FALLING, handle_buttonLoad    , bouncetime=200)
-GPIO.add_event_detect(16, GPIO.FALLING, handle_buttonLikeit  , bouncetime=300)
-GPIO.add_event_detect(24, GPIO.FALLING, handle_buttonDisLike , bouncetime=300)
+GPIO.add_event_detect(BUTTONS[0], GPIO.FALLING, handle_buttonLoad    , bouncetime=300)
+GPIO.add_event_detect(BUTTONS[1], GPIO.FALLING, handle_buttonLoad    , bouncetime=200)
+GPIO.add_event_detect(BUTTONS[2], GPIO.FALLING, handle_buttonLikeit  , bouncetime=300)
+GPIO.add_event_detect(BUTTONS[3], GPIO.FALLING, handle_buttonDisLike , bouncetime=300)
+
 
 # Slideshow Thread
 def slideshow_loop():
