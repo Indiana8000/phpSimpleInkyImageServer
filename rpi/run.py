@@ -25,8 +25,8 @@ image_path = "images"
 image_history_max = 15
 
 # Remote / Online Parameters
-url_base = "http://192.168.5.21/inky/"
-url_inky = url_base + "index.php?inky=1"
+url_base = "http://192.168.5.21/inky"
+url_inky = url_base + "/index.php?inky=1"
 
 
 
@@ -100,8 +100,7 @@ def resizeImage(image, resolution):
 
 def getSaturationByBrightness(image):
     stat = ImageStat.Stat(image)
-    r,g,b = stat.mean
-    sat = math.sqrt(0.241*(r**2) + 0.691*(g**2) + 0.068*(b**2))
+    sat = math.sqrt(0.241*(stat.mean[0]**2) + 0.691*(stat.mean[1]**2) + 0.068*(stat.mean[2]**2))
     saturation = 0.5
     if sat < 100:
         saturation = 0.25
@@ -214,19 +213,15 @@ class MyServer(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(bytes("<html><head><title>phpSimpleInkyImageServer</title></head><body>", "utf-8"))
         self.wfile.write(bytes("<p>Request: %s</p>" % self.path, "utf-8"))
-        request = self.path.split("/")
-        if len(request) > 2:
-            self.wfile.write(bytes("<p>Action: "+request[1]+"</p>", "utf-8"))
-            if request[1] == "show":
-                self.wfile.write(bytes("<p>Parameter: "+request[2]+"</p>", "utf-8"))
-                self.wfile.write(bytes("<p>Parameter: "+request[3]+"</p>", "utf-8"))
-                handle_wwwLoad("./" + request[2] + "/" + request[3])
-            if request[1] == "clear":
-                handle_buttonClear(0)
-            if request[1] == "next":
-                handle_buttonLoad(2)
-        else:
-            self.wfile.write(bytes("<p>Action: none</p>", "utf-8"))
+        request = self.path.split("/", 2)
+        self.wfile.write(bytes("<p>Action: "+request[1]+"</p>", "utf-8"))
+        if request[1] == "clear":
+            handle_buttonClear(0)
+        if request[1] == "next":
+            handle_buttonLoad(2)
+        if request[1] == "show":
+            self.wfile.write(bytes("<p>Parameter: "+request[2]+"</p>", "utf-8"))
+            handle_wwwLoad(request[2])
         self.wfile.write(bytes("</body></html>", "utf-8"))
 
 # Web Server Thread
