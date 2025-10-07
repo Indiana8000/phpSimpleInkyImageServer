@@ -1,1 +1,5 @@
+# Direct in the background
 @reboot	~/.virtualenvs/pimoroni/bin/python ~/run.py >>/tmp/run_inky.log 2>&1
+
+# Or as screen session
+@reboot screen -dmS MyScreen ~/.virtualenvs/pimoroni/bin/python ~/run.py ; screen -S MyScreen -X screen /bin/bash
