@@ -152,6 +152,7 @@ if(isset($_REQUEST['inky'])) { // Called by inky.py
 	} else {
 		// Show list of images
 		echo '<html><head><title>phpSimpleInkyImageServer</title></head><body style="font-family: Tahoma;">';
+        echo '<style>img { width: 600px; height: 448px; object-fit: cover;}</style>';
 		echo 'Browser: ';
 		echo '<a href="?update=1"><button>Update Database</button></a>&nbsp;';
 		echo '<a href="?single=1"><button>Display single image</button></a>&nbsp;';
