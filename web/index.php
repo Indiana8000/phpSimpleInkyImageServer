@@ -116,7 +116,7 @@ if(isset($_REQUEST['inky'])) { // Called by inky.py
 		$GLOBALS['DB']->exec("UPDATE inky_images SET lastupdate = 0");
 		// Read Directory
 		echo "<table>";
-		$files = glob("./*/*.{png,jpg,jpeg}");
+		$files = glob("./*/*.{png,jpg,jpeg}", \GLOB_BRACE);
 		for($i = 0;$i < count($files);$i++) {
 			$stmt = $GLOBALS['DB']->prepare("UPDATE inky_images SET lastupdate = 1 WHERE imagename = :imagename");
 			$stmt->bindValue(':imagename', $files[$i], PDO::PARAM_STR);
@@ -159,6 +159,7 @@ if(isset($_REQUEST['inky'])) { // Called by inky.py
 		echo 'Inky: ';
 		echo '<a href="' . $GLOBALS['CONFIG']['INKY_URL'] . '/next/" target="_blank"><button>Next image</button></a>&nbsp;';
 		echo '<a href="' . $GLOBALS['CONFIG']['INKY_URL'] . '/clear/" target="_blank"><button>Clear screen</button></a>&nbsp;';
+        echo '<a href="javascript:window.open(\'' . $GLOBALS['CONFIG']['INKY_URL'] . '/show/\' + document.getElementById(\'extra_url\').value, \'_blank\').focus();"><button>Show URL</button></a>&nbsp;<input type="text" id="extra_url" style="width: 400px;" />';
 		echo '<br/><br/>';
 
 		$i = 0;
