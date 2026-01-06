@@ -1,0 +1,64 @@
+<?php
+$input  = json_decode(file_get_contents('php://input'), true);
+$action = $_GET['action'] ?? '';
+
+// Initiate Configuration Array and read config.php
+$GLOBALS['CONFIG'] = Array();
+require_once('config.php');
+
+// Connect to Database
+try {
+	if($GLOBALS['CONFIG']['DB_TYPE'] == 'sqlite') {
+        // Define Functions
+        $GLOBALS['CONFIG']['DB_X_RANDOM'] = 'RANDOM()';
+        $GLOBALS['CONFIG']['DB_X_NOW']    = "DATETIME('now')";
+        // Connect
+        $GLOBALS['DB'] = new PDO($GLOBALS['CONFIG']['DB_DSN']);
+	} else if($GLOBALS['CONFIG']['DB_TYPE'] == 'mysql') {
+        // Define Functions
+        $GLOBALS['CONFIG']['DB_X_RANDOM'] = 'RAND()';
+        $GLOBALS['CONFIG']['DB_X_NOW']    = "NOW()";
+        // Connect
+        $GLOBALS['DB'] = new PDO($GLOBALS['CONFIG']['DB_DSN'], $GLOBALS['CONFIG']['DB_USER'], $GLOBALS['CONFIG']['DB_PASSWD'], Array(PDO::MYSQL_ATTR_FOUND_ROWS => true, PDO::ATTR_EMULATE_PREPARES => true));
+		$GLOBALS['DB']->exec("SET NAMES 'utf8'");
+	} else {
+		die('Unknown Connection Type!');
+	}
+} catch(PDOException $e) {
+	die('Connection failed: ' . $e->getMessage());
+}
+
+// Create Tables if missing
+try {
+	$stmt = $GLOBALS['DB']->query("SELECT * FROM inky_settings");
+} catch(PDOException $e) {
+	if($GLOBALS['CONFIG']['DB_TYPE'] == 'sqlite') {
+		$GLOBALS['DB']->exec("CREATE TABLE inky_settings (s_key TEXT, s_value TEXT)");
+		$GLOBALS['DB']->exec("CREATE TABLE inky_images   (imagename TEXT, views NUMBER, likeit NUMBER, lastupdate NUMBER)");
+		$GLOBALS['DB']->exec("CREATE TABLE inky_history  (imagename TEXT, viewed TEXT)");
+	} else if($GLOBALS['CONFIG']['DB_TYPE'] == 'mysql') {
+        $DB_ENGINE = 'ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci PAGE_CHECKSUM=1';
+		$GLOBALS['DB']->exec("CREATE TABLE inky_settings (s_key varchar(250), s_value varchar(250)) " . $DB_ENGINE);
+		$GLOBALS['DB']->exec("CREATE TABLE inky_images   (imagename varchar(250), views int(11), likeit int(11), lastupdate int(1)) " . $DB_ENGINE);
+		$GLOBALS['DB']->exec("CREATE TABLE inky_history  (imagename varchar(250), viewed datetime) " . $DB_ENGINE);
+	}
+}
+
+// Process Call
+switch($action) {
+    case 'webGetImageList':
+        $data = [];
+        $stmt = $GLOBALS['DB']->query("SELECT ih.imagename, ii.views, ii.likeit, ih.viewed FROM inky_history ih JOIN inky_images ii ON ii.imagename = ih.imagename ORDER BY ih.viewed DESC LIMIT 9");
+        $data['lastViewed'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt = $GLOBALS['DB']->query("SELECT ii.imagename, ii.views, ii.likeit, MAX(ih.viewed) as viewed FROM inky_images ii LEFT JOIN inky_history ih ON ii.imagename = ih.imagename WHERE ii.likeit <> 0 GROUP BY ii.imagename, ii.views, ii.likeit ORDER BY ii.likeit DESC, ii.imagename ASC");
+        $data['liked'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        header('Content-Type: application/json');
+        echo json_encode($data);
+        break;
+    default: http_response_code(400); echo 'Unknown action';
+}
+
+
+
+
+?>

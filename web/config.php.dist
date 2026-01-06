@@ -1,0 +1,25 @@
+<?php
+// Timezone and Language
+//date_default_timezone_set('Europe/Berlin');
+//setlocale(LC_TIME, 'de_DE@euro', 'de_DE', 'de', 'de');
+
+// URL to your Raspberry behind your Inky display running run.py
+// Port must match the configuration inside run.py, default: 8080
+// e.g.: http://192.168.1.2:8080
+$GLOBALS['CONFIG']['INKY_URL']    = 'http://192.168.1.2:8080';
+
+// Database type
+// Posible values: mysql, sqlite
+// e.g.: sqlite
+$GLOBALS['CONFIG']['DB_TYPE']     = 'sqlite';
+
+// PDO DSN to connect to your database
+// e.g. sqlite: sqlite:inky.sqlite
+// e.g. mysql/mariadb: mysql:host=192.168.1.3;dbname=inky
+$GLOBALS['CONFIG']['DB_DSN']      = 'sqlite:inky.sqlite';
+
+// Database user and passwort (only for mysql)
+$GLOBALS['CONFIG']['DB_USER']     = 'inky';
+$GLOBALS['CONFIG']['DB_PASSWD']   = 'inky';
+
+?>

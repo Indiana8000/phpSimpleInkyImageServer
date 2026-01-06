@@ -1,0 +1,182 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 2rem;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f5f5f5;
+    color: #222;
+}
+
+h1 {
+    text-align: center;
+    font-size: 3.3vw; /* clamp(2rem, 3.3vw, 2.8rem); */
+    font-weight: 900;
+    letter-spacing: -0.16em;
+    color: #2222229f;
+    text-shadow: 0 0 0 #fff, 0 0 0.08em #000;
+}
+
+.gallery {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* Themenblock */
+.theme h2 {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    /* background: #f5f5f5; */
+    padding: 0.5rem;
+
+    margin: 0 0 1.6rem;
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+    font-weight: 500;
+
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+
+    color: #222;
+    text-shadow: 0 0 5px #FFF, 0 0 10px #FFF, 0 0 15px #FFF, 0 0 30px #FFF;
+
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.theme h2::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(
+        to right,
+        #ccc,
+        transparent
+    );
+}
+
+.theme h2 {
+    animation: fadeRight 0.6s ease both;
+}
+
+@keyframes fadeRight {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+/* Grid */
+.image-grid {
+    display: grid;
+    grid-template-columns: repeat(
+        auto-fit,
+        minmax(500px, 1fr)
+    );
+    gap: 1.6rem;
+}
+
+/* Bildcontainer */
+.image-card {
+    position: relative;
+    overflow: hidden;
+
+    margin: 0;
+    height: clamp(300px, 35vw, 480px);
+    border-radius: 12px;
+    background: #000;
+
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.8);
+    transition: box-shadow 0.3s ease;
+}
+
+/* Bild */
+.image-card img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+    object-position: center;
+
+    transform: scale(1);
+    transition: transform 0.5s ease;
+    will-change: transform;
+}
+
+
+/* Overlay */
+.image-card .overlay {
+    position: absolute;
+    inset: 0;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+
+    padding: 1.5rem;
+
+    background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.65),
+        rgba(0, 0, 0, 0.0) 60%
+    );
+
+    color: #fff;
+
+    opacity: 0;
+    transition: opacity 0.35s ease;
+}
+
+.overlay p {
+    white-space: nowrap;
+}
+
+/* Text */
+.image-card h3 {
+    margin: 0;
+    font-size: 1.12rem;
+}
+
+.image-card p {
+    margin: 0.25rem 0 0;
+    font-size: 0.95rem;
+    opacity: 0.85;
+}
+
+/* Hover-Effekte */
+.image-card:hover img {
+    transform: scale(1.12) translateY(-2%);
+}
+
+.image-card:hover .overlay {
+    opacity: 1;
+}
+
+.image-card:hover {
+    box-shadow: 0 4px 16px 4px rgba(0, 0, 0, 1);
+}
+
+
+/* Mobile Anpassung */
+@media (max-width: 550px) {
+    .image-grid {
+        grid-template-columns: 1fr;
+    }
+    .image-card {
+        height: 300px;
+    }
+}
+
+@media (hover: none) {
+    .image-grid figure:hover img {
+        transform: none;
+    }
+}
