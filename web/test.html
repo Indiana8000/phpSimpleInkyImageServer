@@ -7,35 +7,33 @@
 </head>
 <body>
 
+<!-- Title-->
 <h1>php &nbsp;&nbsp;&nbsp; Simple &nbsp;&nbsp;&nbsp; Inky &nbsp;&nbsp;&nbsp; Image &nbsp;&nbsp;&nbsp; Server</h1>
 
+<!-- Controll Buttons -->
 <div class="top-controls">
-
     <div class="control-group">
         <button class="control-btn">🔄 Update Bild Liste</button>
         <button class="control-btn">🎲 Zeige zufälliges Bild</button>
     </div>
-
     <div class="control-group">
         <button class="control-btn">⏭ Nächstes Bild</button>
         <button class="control-btn">🧽 Display Reinigen</button>
-
         <div class="control-input">
             <input type="url" placeholder="🔗 Bild-URL eingeben">
             <button class="control-btn">👁 Zeige Bild von URL</button>
         </div>
     </div>
-
 </div>
 
+<!-- MAIN -->
+<main class="gallery" id="ImageGallery"></main>
 
-<main class="gallery" id="ImageGallery">
+<!-- Lightbox -->
+<div id="lightbox" class="lightbox"><img id="lightbox-img" alt=""></div>
 
-</main>
-
-<button id="scrollTopBtn" class="scroll-top" aria-label="Nach oben scrollen">
-    ⬆️ Nach oben
-</button>
+<!-- Scroll To Top -->
+<button id="scrollTopBtn" class="scroll-top" aria-label="Nach oben scrollen">⬆️ Nach oben</button>
 
 <script src="jquery.min.js"></script>
 <script src="scripts.js"></script>

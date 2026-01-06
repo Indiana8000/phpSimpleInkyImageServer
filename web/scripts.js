@@ -84,6 +84,24 @@ function loadImageList() {
 
 
 
+// ======================
+// Lightbox
+// ======================
+$(document).on('click','.image-card img', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    $('#lightbox-img').attr('src', $(this).attr('src'));
+    $('#lightbox').addClass('visible');
+});
+$('#lightbox').on('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    $('#lightbox').removeClass('visible');
+});
+
+// ======================
+// Scroll to top
+// ======================
 const scrollBtn = document.getElementById('scrollTopBtn');
 
 window.addEventListener('scroll', () => {
@@ -96,6 +114,7 @@ scrollBtn.addEventListener('click', () => {
         behavior: 'smooth'
     });
 });
+
 
 
 // ======================
