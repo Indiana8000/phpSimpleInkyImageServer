@@ -38,10 +38,10 @@ function renderFigure(i) {
         <figure class="image-card">
             <img src="${i.imagename}" loading="lazy">
             <div class="actions">
-                <button title="Ansehen">👁</button>
-                <button title="Like +">👍</button>
-                <button title="Like -">👎</button>
-                <button title="Löschen">🗑</button>
+                <button class="imgView"  title="Ansehen">🖥️</button>
+                <button class="imgLup"   title="Like +">👍</button>
+                <button class="imgLdown" title="Like -">👎</button>
+                <button class="imgDel"   title="Löschen">🗑</button>
             </div>
             <figcaption class="overlay">
                 <div class="overlay-content">
@@ -79,25 +79,119 @@ function loadImageList() {
 
 
 
+// ======================
+// Action: Update Database
+// ======================
+$('#btnControlUpdate').on('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    showLoader("Updating Database");
+    api('webUpdateDatabase', {}, res => {
+        if(res.new.length > 10) html = "<strong>New images</strong> " + res.new.length;
+        else html = "<strong>New images:</strong><br>" + res.new.join('<br>');
+        html += "<br><br>";
+        if(res.delted.length > 10) html += "<strong>Delted images</strong> " + res.delted.length;
+        else html += "<strong>Delted images:</strong><br>" + res.delted.join('<br>');
+        unlockLoader(html);
+    });
+});
+
+// ======================
+// Action: Random Image
+// ======================
+$('#btnControlRandom').on('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    api('webGetRandomImage', {}, res => {
+        lightboxShowImage(res.imagename);
+    });
+});
+
+// ======================
+// Action: Next Image
+// ======================
+$('#btnControlInkyNext').on('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    showLoader('Requested Inky to display next random image.');
+});
+
+// ======================
+// Action: Clear Display
+// ======================
+$('#btnControlInkyClean').on('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    showLoader('Clearing Inky Display.');
+});
+
+// ======================
+// Action: Next Image
+// ======================
+$('#btnControlInkyDisplay').on('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    showLoader('Image ' + $('#btnControlInkyUrl').val() + ' send to Inky.');
+});
+
+// ======================
+// Image-Action: View
+// ======================
+$(document).on('click', '.imgView', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const f = $(this).closest('figure');
+    const i = f.find('img').attr('src');
+    showLoader('Image ' + i + ' send to Inky.');
+});
 
 
 
+// ======================
+// Loader
+// ======================
+let loaderLocked = false;
+function showLoader(text) {
+    loaderLocked = true;
+    $('#loader .loader-text').html(text);
+    $('#loader .spinner').show();
+    $('#loader').addClass('visible');
+}
+function hideLoader() {
+    $('#loader').removeClass('visible');
+}
+function unlockLoader(text) {
+    loaderLocked = false;
+    $('#loader .loader-text').html(text);
+    $('#loader .spinner').hide();
+    $('#loader').addClass('visible');
+}
+$('#loader').on('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if(!loaderLocked)
+        hideLoader();
+});
 
 
 // ======================
 // Lightbox
 // ======================
-$(document).on('click','.image-card img', function(e) {
+$(document).on('click', '.image-card img', function(e) {
     e.preventDefault();
     e.stopPropagation();
-    $('#lightbox-img').attr('src', $(this).attr('src'));
-    $('#lightbox').addClass('visible');
+    lightboxShowImage($(this).attr('src'));
 });
 $('#lightbox').on('click', function(e) {
     e.preventDefault();
     e.stopPropagation();
     $('#lightbox').removeClass('visible');
 });
+function lightboxShowImage(url) {
+    $('#lightbox-img').attr('src', '');
+    $('#lightbox-img').attr('src', url);
+    $('#lightbox').addClass('visible');
+}
 
 // ======================
 // Scroll to top
@@ -114,8 +208,6 @@ scrollBtn.addEventListener('click', () => {
         behavior: 'smooth'
     });
 });
-
-
 
 // ======================
 // Init

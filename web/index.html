@@ -13,15 +13,15 @@
 <!-- Controll Buttons -->
 <div class="top-controls">
     <div class="control-group">
-        <button class="control-btn">🔄 Update Bild Liste</button>
-        <button class="control-btn">🎲 Zeige zufälliges Bild</button>
+        <button class="control-btn" id="btnControlUpdate">🔄 Update Image List</button>
+        <button class="control-btn" id="btnControlRandom">🎲 Show Random Image</button>
     </div>
     <div class="control-group">
-        <button class="control-btn">⏭ Nächstes Bild</button>
-        <button class="control-btn">🧽 Display Reinigen</button>
+        <button class="control-btn" id="btnControlInkyNext">⏭ Next Image</button>
+        <button class="control-btn" id="btnControlInkyClean">🧽 Clean Display</button>
         <div class="control-input">
-            <input type="url" placeholder="🔗 Bild-URL eingeben">
-            <button class="control-btn">👁 Zeige Bild von URL</button>
+            <input type="url"  id="btnControlInkyUrl" placeholder="🔗 Image URL">
+            <button class="control-btn" id="btnControlInkyDisplay">👁 Display Image from URL</button>
         </div>
     </div>
 </div>
@@ -31,6 +31,10 @@
 
 <!-- Lightbox -->
 <div id="lightbox" class="lightbox"><img id="lightbox-img" alt=""></div>
+
+<!-- Loading Dialog-->
+<div id="loader" class="lightbox loader"><div class="spinner"></div><div class="loader-text">Lade …</div></div>
+
 
 <!-- Scroll To Top -->
 <button id="scrollTopBtn" class="scroll-top" aria-label="Nach oben scrollen">⬆️ Nach oben</button>

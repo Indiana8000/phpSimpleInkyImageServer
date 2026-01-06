@@ -61,12 +61,60 @@ switch($action) {
         header('Content-Type: application/json');
         echo json_encode($data);
         break;
+    case 'webGetRandomImageRaw':
+        $stmt = $GLOBALS['DB']->query("SELECT * FROM inky_images WHERE likeit >= 0 ORDER BY (1 / POW(views + 1, 1.3)) * (RAND() + 0.0001) DESC LIMIT 1");
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        $file = $data['imagename'];
+        $imageType = exif_imagetype($file);
+        $mime = $imageType ? image_type_to_mime_type($imageType) : 'text/text';
+        header('Content-Type: ' . $mime);
+        header('Content-Length: ' . filesize($file));
+        readfile($file);           
+        break;
+    case 'webUpdateDatabase':
+        $result = updateDatabase();
+        header('Content-Type: application/json');
+        echo json_encode($result);
+        break;
 
-        
     default: http_response_code(400); echo 'Unknown action';
 }
 
 
 
+function updateDatabase() {
+    $result = ['new' => [], 'deleted' => []];
+
+    // Get lowest View Count
+    $stmt = $GLOBALS['DB']->query("SELECT min(views) as min_views FROM inky_images WHERE views > 0");
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    $min_views = $row['min_views'];
+    if(!$min_views) $min_views = 0;
+
+    // Mark all images as deleted
+    $GLOBALS['DB']->exec("UPDATE inky_images SET lastupdate = 0");
+
+    // Read Directory
+    $files = glob($GLOBALS['CONFIG']['IMAGE_PATH'], \GLOB_BRACE);
+    for($i = 0;$i < count($files);$i++) {
+        $stmt = $GLOBALS['DB']->prepare("UPDATE inky_images SET lastupdate = 1 WHERE imagename = :imagename");
+        $stmt->bindValue(':imagename', $files[$i], PDO::PARAM_STR);
+        $stmt->execute();
+        if($stmt->rowCount() == 0) {
+            $stmt = $GLOBALS['DB']->prepare("INSERT INTO inky_images (imagename, views, lastupdate, likeit) VALUES (:imagename, :views, 1, 0)");
+            $stmt->bindValue(':imagename', $files[$i], PDO::PARAM_STR);
+            $stmt->bindValue(':views'    , $min_views, PDO::PARAM_INT);
+            $stmt->execute();
+            array_push($result['new'], $files[$i]);
+        }
+    }
+
+    // Deleted Images
+    $stmt = $GLOBALS['DB']->query("SELECT imagename FROM inky_images WHERE lastupdate = 0");
+    $result['deleted'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt = $GLOBALS['DB']->query("DELETE FROM inky_images WHERE lastupdate = 0");
+
+    return $result;
+}
 
 ?>
