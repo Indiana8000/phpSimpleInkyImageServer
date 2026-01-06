@@ -37,10 +37,17 @@ function renderFigure(i) {
     return `
         <figure class="image-card">
             <img src="${i.imagename}" loading="lazy">
-
+            <div class="actions">
+                <button title="Ansehen">👁</button>
+                <button title="Like +">👍</button>
+                <button title="Like -">👎</button>
+                <button title="Löschen">🗑</button>
+            </div>
             <figcaption class="overlay">
-                <h3>${i.viewed} · ${i.views} views · ${i.likeit} likes</h3>
-                <p>${i.imagename}</p>
+                <div class="overlay-content">
+                    <h3>${i.viewed} · ${i.views} views · ${i.likeit} likes</h3>
+                    <p>${i.imagename}</p>
+                </div>
             </figcaption>
         </figure>    
     `;
@@ -62,7 +69,7 @@ function loadImageList() {
             if(section_id != i.likeit) {
                 section_id = i.likeit;
                 $('#ImageGallery').append(renderSection('s_' + section_id, 'Likes: ' + section_id));
-
+                if(section_id < 0)$('#s_' + section_id).parent().addClass('theme-red');
             }
             $('#s_' + section_id).append(renderFigure(i));
         });

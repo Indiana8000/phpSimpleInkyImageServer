@@ -55,6 +55,14 @@ switch($action) {
         header('Content-Type: application/json');
         echo json_encode($data);
         break;
+    case 'webGetRandomImage':
+        $stmt = $GLOBALS['DB']->query("SELECT * FROM inky_images WHERE likeit >= 0 ORDER BY (1 / POW(views + 1, 1.3)) * (RAND() + 0.0001) DESC LIMIT 1");
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        header('Content-Type: application/json');
+        echo json_encode($data);
+        break;
+
+        
     default: http_response_code(400); echo 'Unknown action';
 }
 

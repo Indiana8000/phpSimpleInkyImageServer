@@ -25,12 +25,11 @@ h1 {
     gap: 2rem;
 }
 
-/* Themenblock */
+/* Theme block */
 .theme h2 {
     position: sticky;
     top: 0;
     z-index: 10;
-    /* background: #f5f5f5; */
     padding: 0.5rem;
 
     margin: 0 0 1.6rem;
@@ -46,6 +45,8 @@ h1 {
     display: flex;
     align-items: center;
     gap: 1rem;
+
+    animation: fadeRight 0.6s ease both;
 }
 
 .theme h2::after {
@@ -59,8 +60,20 @@ h1 {
     );
 }
 
-.theme h2 {
-    animation: fadeRight 0.6s ease both;
+.theme-red h2 {
+    color: #c00;
+}
+
+.theme-red h2::after {
+    background: linear-gradient(
+        to right,
+        #c00,
+        transparent
+    );
+}
+
+.theme-red .image-card {
+    box-shadow: 0 4px 16px rgba(204, 0, 0, 0.8);
 }
 
 @keyframes fadeRight {
@@ -84,7 +97,7 @@ h1 {
     gap: 1.6rem;
 }
 
-/* Bildcontainer */
+/* Image contrainer */
 .image-card {
     position: relative;
     overflow: hidden;
@@ -98,7 +111,7 @@ h1 {
     transition: box-shadow 0.3s ease;
 }
 
-/* Bild */
+/* Image */
 .image-card img {
     width: 100%;
     height: 100%;
@@ -112,57 +125,115 @@ h1 {
 }
 
 
+
 /* Overlay */
-.image-card .overlay {
+.overlay {
     position: absolute;
-    inset: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
 
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-
-    padding: 1.5rem;
+    height: 5.2rem; /* Höhe für beide Zeilen */
 
     background: linear-gradient(
         to top,
-        rgba(0, 0, 0, 0.65),
-        rgba(0, 0, 0, 0.0) 60%
+        rgba(0,0,0,0.75),
+        rgba(0,0,0,0.30),
+        rgba(0,0,0,0)
     );
 
-    color: #fff;
-
-    opacity: 0;
-    transition: opacity 0.35s ease;
+    transition: transform 0.35s ease;
 }
 
-.overlay p {
-    white-space: nowrap;
+.overlay-content {
+    padding: 1rem;
+    transform: translateY(2.2rem); /* zweite Zeile versteckt */
+    transition: transform 0.35s ease;
 }
 
 /* Text */
-.image-card h3 {
+.overlay h3 {
     margin: 0;
-    font-size: 1.12rem;
+    font-size: 1.2rem;
+    color: #fff;
 }
 
-.image-card p {
-    margin: 0.25rem 0 0;
+.overlay p {
+    margin: 0.3rem 0 0;
     font-size: 0.95rem;
-    opacity: 0.85;
+    color: rgba(255,255,255,0.85);
+    white-space: nowrap;
 }
+
+
+
+/* Action-Container */
+.actions {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -30px);
+
+    display: flex;
+    gap: 0.75rem;
+
+    opacity: 0;
+    pointer-events: none;
+
+    transition:
+        opacity 0.25s ease,
+        transform 0.35s cubic-bezier(.22,.61,.36,1);
+}
+
+/* Buttons */
+.actions button {
+    border: none;
+    padding: 0.6rem 0.65rem;
+
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+
+    font-size: 1rem;
+    border-radius: 999px;
+    cursor: pointer;
+
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.45);
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+.actions button:nth-child(2) { background: rgba(34,197,94,0.6); } /* Like + */
+.actions button:nth-child(3) { background: rgba(239,68,68,0.6); } /* Like - */
+
+.actions button:hover {
+    background: rgba(0,0,0,0.75);
+    transform: scale(1.08);
+}
+
+
 
 /* Hover-Effekte */
+.image-card:hover {
+    box-shadow: 0 4px 16px 8px rgba(0, 0, 0, 1);
+}
+
 .image-card:hover img {
     transform: scale(1.12) translateY(-2%);
 }
 
-.image-card:hover .overlay {
+.image-card:hover .actions {
     opacity: 1;
+    pointer-events: auto;
+
+    transform: translate(-50%, 20px);
 }
 
-.image-card:hover {
-    box-shadow: 0 4px 16px 4px rgba(0, 0, 0, 1);
+.image-card:hover .overlay-content {
+    transform: translateY(0);
 }
+
 
 
 /* Mobile Anpassung */
@@ -176,7 +247,12 @@ h1 {
 }
 
 @media (hover: none) {
-    .image-grid figure:hover img {
-        transform: none;
+    .actions {
+        opacity: 1;
+        transform: translate(-50%, 20px);
+        pointer-events: auto;
+    }
+    .overlay-content {
+        transform: translateY(0);
     }
 }
