@@ -21,6 +21,7 @@ try {
         // Connect
         $GLOBALS['DB'] = new PDO($GLOBALS['CONFIG']['DB_DSN'], $GLOBALS['CONFIG']['DB_USER'], $GLOBALS['CONFIG']['DB_PASSWD'], Array(PDO::MYSQL_ATTR_FOUND_ROWS => true, PDO::ATTR_EMULATE_PREPARES => true));
 		$GLOBALS['DB']->exec("SET NAMES 'utf8'");
+		// $GLOBALS['DB']->exec("SET time_zone = 'Europe/Berlin'");
 	} else {
 		die('Unknown Connection Type!');
 	}
@@ -129,6 +130,14 @@ switch($action) {
         } else
             echo "File not Found!<br>" . $input['url'];
         break;
+    case 'searchFile':
+        $stmt = $GLOBALS['DB']->prepare("SELECT imagename FROM inky_images WHERE imagename LIKE :imagename");
+        $stmt->bindValue(':imagename', '%' . str_replace('*', '%', $input['pattern']) . '%', PDO::PARAM_STR);
+        $stmt->execute();
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        header('Content-Type: application/json');
+        echo json_encode($result);
+        break;
     case 'webSendToInky':
         $url = $GLOBALS['CONFIG']['INKY_URL'] . '/?action=' . $input['action'];
         if(isset($input['url'])) {
@@ -205,6 +214,17 @@ function getRandomImageByButton($button) {
 
     // Output Image Name (Binary will be loaded directly with extra call)
     return $imagename;
+}
+
+function searchFile2($path, $pattern) {
+    $result = [];
+    $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS));
+    foreach ($iterator as $file) {
+        if ($file->isFile() && fnmatch($pattern, $file->getFilename()) && exif_imagetype($file->getPathname())) {
+            $result[] = $file->getPathname();
+        }
+    }
+    return $result;
 }
 
 ?>

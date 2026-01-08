@@ -14,6 +14,9 @@
     --c-box-hover: 0 4px 16px 8px rgba(0, 0, 0, 1);
     --c-red-shadow: 0 4px 16px rgba(204, 0, 0, 0.8);
 
+    --b-white-extra: rgba(255, 255, 255, 0.8);
+    --b-black-extra: rgba( 30,  30,  30, 0.8);
+
     --b-btn-backdrop: blur(8px);
     --b-border-radius: 14px;
 
@@ -70,7 +73,7 @@ h1 {
     margin-bottom: 1.6rem;
     border-radius: var(--b-border-radius);
 
-    background: rgba(255, 255, 255, 0.8);
+    background: var(--b-white-extra);
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
 }
 .control-group {
@@ -114,6 +117,7 @@ h1 {
 }
 .control-input input {
     padding: 0.5rem 0.75rem;
+    width: 100%;
 
     border-radius: 999px;
     border: none;
@@ -479,6 +483,59 @@ h1 {
     to {
         transform: rotate(360deg);
     }
+}
+
+
+
+/* ************* */
+/* Auto Complete */
+/* ************* */
+.autocomplete {
+    position: relative;
+    width: 360px;
+}
+.autocomplete-list {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+
+    width: max-content;
+
+    background: var(--b-black-extra);
+    backdrop-filter: var(--b-btn-backdrop);
+
+    border-radius: var(--b-border-radius);
+    padding: 6px 0;
+    margin: 0;
+
+    list-style: none;
+    z-index: 50;
+
+    box-shadow: var(--c-box-shadow);
+
+    display: none;
+    overflow: hidden;
+}
+.autocomplete-list.visible {
+    display: block;
+}
+.autocomplete-list li {
+    padding: 10px 14px;
+    cursor: pointer;
+    color: #fff;
+    font-size: 0.95rem;
+
+    white-space: nowrap;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition:
+        background var(---t-fast);
+}
+.autocomplete-list li:hover {
+    color: #222;
+    background: var(--b-white-extra);
 }
 
 

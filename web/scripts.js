@@ -148,9 +148,10 @@ $('#btnControlInkyDisplay').on('click', function(e) {
     const i = $('#btnControlInkyUrl').val();
     showLoader('Image ' + i + ' send to Inky.');
     api('webSendToInky', { action: 'show', url: i}, res => {
-        if(res == "OK")
+        if(res == "OK") {
+            $('#btnControlInkyUrl').val('');
             hideLoader();
-        else
+        } else
             unlockLoader(res);
     });
 });
@@ -282,6 +283,79 @@ scrollBtn.addEventListener('click', () => {
         behavior: 'smooth'
     });
 });
+
+
+
+// ======================
+// Auto Complete
+// ======================
+let debounceTimer = null;
+
+$('#btnControlInkyUrl').on('input', function(e) {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+        searchPattern($('#btnControlInkyUrl').val().trim());
+    }, 350);
+})
+$('#btnControlInkyUrl').on('focus', function(e) {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+        searchPattern($('#btnControlInkyUrl').val().trim());
+    }, 350);
+})
+$('#btnControlInkyUrl').on('blur', function(e) {
+    clearTimeout(debounceTimer);
+    hideList();
+})
+$('#btnControlInkyUrl').on('keydown', function(e) {
+    if (e.key === 'Escape') {
+        hideList();
+        return;
+    } else {
+        return
+    }
+});
+
+async function searchPattern(query) {
+    if (!query || query.length < 2) {
+        hideList();
+        return;
+    }
+
+    api('searchFile', { pattern: query }, res => {
+        renderList(res);
+    });
+}
+function renderList(items) {
+    if (!items.length) {
+        hideList();
+        return;
+    }
+
+    $('#autocomplete-list').html('');
+    items.forEach((item, index) => {
+        const li = document.createElement('li');
+        li.textContent = item.imagename;
+
+        li.addEventListener('mousedown', () => {
+            window.scrollTo({top: 0, behavior: 'smooth'});
+            $('#btnControlInkyUrl').val(item.imagename);
+            lightboxShowImage(item.imagename);
+            hideList();
+        });
+
+        $('#autocomplete-list').append(li);
+    });
+
+    $('#autocomplete-list').addClass('visible');
+}
+
+function hideList() {
+    $('#autocomplete-list').removeClass('visible');
+    $('#autocomplete-list').html('');
+}
+
+
 
 // ======================
 // Init
