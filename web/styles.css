@@ -1,3 +1,9 @@
+/*
+Project: phpSimpleInkyImageServer
+File:    style.css
+Purpose: Base layout and styles
+*/
+
 :root {
     --t-fast: 0.2s ease;
     --t-base: 0.35s ease;
@@ -91,6 +97,7 @@ h1 {
 
     font-size: 0.95rem;
     font-weight: 500;
+    white-space: nowrap;
 
     border: none;
     border-radius: 999px;
@@ -492,7 +499,7 @@ h1 {
 /* ************* */
 .autocomplete {
     position: relative;
-    width: 360px;
+    min-width: 280px;
 }
 .autocomplete-list {
     position: absolute;

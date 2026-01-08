@@ -1,4 +1,12 @@
 <?php
+/**
+ * ==================================================
+ * Project: phpSimpleInkyImageServer
+ * File:    api.php
+ * Purpose: REST API for CRUD operations
+ * ==================================================
+ */
+
 $input  = json_decode(file_get_contents('php://input'), true);
 $action = $_GET['action'] ?? '';
 

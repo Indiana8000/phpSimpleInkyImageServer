@@ -1,6 +1,8 @@
-// ======================
-// Global State
-// ======================
+/**
+ * Project: phpSimpleInkyImageServer
+ * File:    script.js
+ * Purpose: AJAX content handling
+ */
 
 
 
@@ -22,7 +24,6 @@ function api(action, data = {}, cb) {
 // ======================
 // Render Functions
 // ======================
-
 function renderSection(id, title) {
     return `
         <section class="theme">
@@ -32,7 +33,6 @@ function renderSection(id, title) {
         </section>
     `;
 }
-
 function renderFigure(i) {
     return `
         <figure class="image-card">
@@ -52,6 +52,7 @@ function renderFigure(i) {
         </figure>    
     `;
 }
+
 
 
 // ======================
@@ -88,10 +89,10 @@ $('#btnControlUpdate').on('click', function(e) {
     showLoader("Updating Database");
     api('webUpdateDatabase', {}, res => {
         console.log(res);
-        if(res['new'].length == 0 || res['new'].length > 10) html = "<strong>New images</strong> " + res['new'].length;
+        if(res['new'].length == 0 || res['new'].length > 10) html = "<strong>New images:</strong> " + res['new'].length;
         else html = "<strong>New images:</strong><br>" + res['new'].join('<br>');
         html += "<br><br>";
-        if(res['deleted'].length == 0 || res['deleted'].length > 10) html += "<strong>Deleted images</strong> " + res['deleted'].length;
+        if(res['deleted'].length == 0 || res['deleted'].length > 10) html += "<strong>Deleted images:</strong> " + res['deleted'].length;
         else html += "<strong>Delted images:</strong><br>" + res['deleted'].join('<br>');
         unlockLoader(html);
     });
@@ -223,7 +224,7 @@ $(document).on('click', '.imgLdown', function(e) {
 
 
 // ======================
-// Loader
+// Dialog: Loader
 // ======================
 let loaderLocked = false;
 function showLoader(text) {
@@ -249,8 +250,9 @@ $('#loader').on('click', function(e) {
 });
 
 
+
 // ======================
-// Lightbox
+// Dialog: Lightbox
 // ======================
 $(document).on('click', '.image-card img', function(e) {
     e.preventDefault();
@@ -268,8 +270,10 @@ function lightboxShowImage(url) {
     $('#lightbox').addClass('visible');
 }
 
+
+
 // ======================
-// Scroll to top
+// Scroll to top Button
 // ======================
 const scrollBtn = document.getElementById('scrollTopBtn');
 
@@ -349,7 +353,6 @@ function renderList(items) {
 
     $('#autocomplete-list').addClass('visible');
 }
-
 function hideList() {
     $('#autocomplete-list').removeClass('visible');
     $('#autocomplete-list').html('');

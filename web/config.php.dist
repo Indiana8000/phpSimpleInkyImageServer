@@ -1,5 +1,5 @@
 <?php
-// Timezone and Language
+// Timezone and Language (Optional)
 //date_default_timezone_set('Europe/Berlin');
 //setlocale(LC_TIME, 'de_DE@euro', 'de_DE', 'de', 'de');
 
@@ -15,7 +15,6 @@ $GLOBALS['CONFIG']['IMAGE_PATH']  = './images/*.{png,jpg,jpeg}';
 
 // Database type
 // Posible values: mysql, sqlite
-// e.g.: sqlite
 $GLOBALS['CONFIG']['DB_TYPE']     = 'sqlite';
 
 // PDO DSN to connect to your database
