@@ -80,7 +80,7 @@ function loadImageList() {
 
 
 // ======================
-// Action: Update Database
+// Action: Web - Update Database
 // ======================
 $('#btnControlUpdate').on('click', function(e) {
     e.preventDefault();
@@ -97,7 +97,7 @@ $('#btnControlUpdate').on('click', function(e) {
 });
 
 // ======================
-// Action: Random Image
+// Action: Web - Random Image
 // ======================
 $('#btnControlRandom').on('click', function(e) {
     e.preventDefault();
@@ -108,34 +108,53 @@ $('#btnControlRandom').on('click', function(e) {
 });
 
 // ======================
-// Action: Next Image
+// Action: Inky - Show Next Image
 // ======================
 $('#btnControlInkyNext').on('click', function(e) {
     e.preventDefault();
     e.stopPropagation();
     showLoader('Requested Inky to display next random image.');
+    api('webSendToInky', { action: 'next'}, res => {
+        if(res == "OK")
+            hideLoader();
+        else
+            unlockLoader(res);
+    });
 });
 
 // ======================
-// Action: Clear Display
+// Action: Inky - Clear Display
 // ======================
 $('#btnControlInkyClean').on('click', function(e) {
     e.preventDefault();
     e.stopPropagation();
     showLoader('Clearing Inky Display.');
+    api('webSendToInky', { action: 'clear'}, res => {
+        if(res == "OK")
+            hideLoader();
+        else
+            unlockLoader(res);
+    });
 });
 
 // ======================
-// Action: Next Image
+// Action: Inky - Show URL
 // ======================
 $('#btnControlInkyDisplay').on('click', function(e) {
     e.preventDefault();
     e.stopPropagation();
-    showLoader('Image ' + $('#btnControlInkyUrl').val() + ' send to Inky.');
+    const i = $('#btnControlInkyUrl').val();
+    showLoader('Image ' + i + ' send to Inky.');
+    api('webSendToInky', { action: 'show', url: i}, res => {
+        if(res == "OK")
+            hideLoader();
+        else
+            unlockLoader(res);
+    });
 });
 
 // ======================
-// Image-Action: View
+// Image-Action: Inky - Show this Image
 // ======================
 $(document).on('click', '.imgView', function(e) {
     e.preventDefault();
@@ -143,7 +162,18 @@ $(document).on('click', '.imgView', function(e) {
     const f = $(this).closest('figure');
     const i = f.find('img').attr('src');
     showLoader('Image ' + i + ' send to Inky.');
+    api('webSendToInky', { action: 'show', url: i}, res => {
+        if(res == "OK")
+            hideLoader();
+        else
+            unlockLoader(res);
+    });
 });
+
+
+
+
+
 
 
 

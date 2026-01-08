@@ -46,6 +46,8 @@ try {
 
 // Process Call
 switch($action) {
+    case 'inky':
+        break;
     case 'webGetImageList':
         $data = [];
         $stmt = $GLOBALS['DB']->query("SELECT ih.imagename, ii.views, ii.likeit, ih.viewed FROM inky_history ih JOIN inky_images ii ON ii.imagename = ih.imagename ORDER BY ih.viewed DESC LIMIT 9");
@@ -76,6 +78,21 @@ switch($action) {
         header('Content-Type: application/json');
         echo json_encode($result);
         break;
+    case 'webSendToInky':
+        $url = $GLOBALS['CONFIG']['INKY_URL'] . '/?action=' . $input['action'];
+        if(isset($input['url'])) {
+            // TBD: If URL starts with HTTP download image to temp file and display
+            if(file_exists($input['url']))
+                $url .= '&url=' . urlencode($input['url']);
+            else
+                die("File not found!");
+        }
+        $content = file_get_contents($url);
+        //header('Content-Type: application/json');
+        echo $content;
+        //echo json_encode($result);
+        break;
+
 
     default: http_response_code(400); echo 'Unknown action';
 }
