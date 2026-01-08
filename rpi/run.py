@@ -32,7 +32,7 @@ image_path = "images"
 image_history_max = 15
 
 # Remote / Online Parameters
-url_base = "http://192.168.5.21/inky"
+url_base = "http://192.168.5.21/inky" # You cound use the Demo site as source for testing: https://inky.bluepaw.de/
 url_inky = url_base + "/api.php?action=inky"
 
 
