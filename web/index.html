@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>phpSimpleInkyImageServer</title>
+    <meta name="description" content="A simple python and php script to supply your Pimoroni Inky e-paper with images">
+
+    <meta property="og:title" content="phpSimpleInkyImageServer">
+    <meta property="og:description" content="A simple python and php script to supply your Pimoroni Inky e-paper with images">
+    <meta property="og:type" content="website">
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- Title-->
+<h1>php &nbsp;&nbsp;&nbsp; Simple &nbsp;&nbsp;&nbsp; Inky &nbsp;&nbsp;&nbsp; Image &nbsp;&nbsp;&nbsp; Server</h1>
+
+<!-- Controll Buttons -->
+<div class="top-controls">
+    <div class="control-group">
+        <button class="control-btn" id="btnControlUpdate">🔄 Update Image Database</button>
+        <button class="control-btn" id="btnControlRandom">🎲 Show Random Image</button>
+    </div>
+    <div class="control-group">
+        <button class="control-btn" id="btnControlInkyNext">⏭ Next Image</button>
+        <button class="control-btn" id="btnControlInkyClean">🧽 Clean Display</button>
+        <div class="control-input">
+            <div class="autocomplete">
+                <input id="btnControlInkyUrl" type="text" placeholder="🔗 Image URL" autocomplete="off">
+                <ul id="autocomplete-list" class="autocomplete-list"></ul>
+            </div>
+            <button class="control-btn" id="btnControlInkyDisplay">👁 Display Image from URL</button>
+        </div>
+    </div>
+</div>
+
+<!-- MAIN -->
+<main class="gallery" id="ImageGallery"></main>
+
+<!-- Lightbox -->
+<div id="lightbox" class="lightbox"><img id="lightbox-img" alt=""></div>
+
+<!-- Loading Dialog-->
+<div id="loader" class="lightbox loader"><div class="spinner"></div><div class="loader-text">Lade …</div></div>
+
+<!-- Scroll To Top -->
+<button id="scrollTopBtn" class="scroll-top" aria-label="Nach oben scrollen">⬆️ Nach oben</button>
+
+<script src="jquery.min.js"></script>
+<script src="scripts.js"></script>
+
+</body>
+</html>

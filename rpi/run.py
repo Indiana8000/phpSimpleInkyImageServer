@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+#
+# phpSimpleInkyImageServer
+#
+# - Require Python 3.10 or newer
+#
 import time
 import math
 import requests
@@ -12,6 +17,8 @@ from inky.auto import auto
 from inky.inky_uc8159 import CLEAN
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from urllib.parse import urlparse, parse_qs
+
 from threading import Thread
 
 # How long in minutes a image should be displayed
@@ -25,8 +32,8 @@ image_path = "images"
 image_history_max = 15
 
 # Remote / Online Parameters
-url_base = "http://192.168.5.21/inky"
-url_inky = url_base + "/index.php?inky=1"
+url_base = "http://192.168.5.21/inky" # You cound use the Demo site as source for testing: https://inky.bluepaw.de/
+url_inky = url_base + "/api.php?action=inky"
 
 
 
@@ -208,21 +215,28 @@ def slideshow_loop():
 # Web Server Class
 class MyServer(BaseHTTPRequestHandler):
     def do_GET(self):
+        qs = parse_qs(urlparse(self.path).query)
+        action = qs.get("action", [None])[0]
+        status = "Unknown Error"
+        match action:
+            case 'clear':
+                handle_buttonClear(0)
+                status = "OK"
+            case 'next':
+                handle_buttonLoad(2)
+                status = "OK"
+            case 'show':
+                url = qs.get("url", [None])[0]
+                handle_wwwLoad(url)
+                status = "OK"
+
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()
-        self.wfile.write(bytes("<html><head><title>phpSimpleInkyImageServer</title></head><body>", "utf-8"))
-        self.wfile.write(bytes("<p>Request: %s</p>" % self.path, "utf-8"))
-        request = self.path.split("/", 2)
-        self.wfile.write(bytes("<p>Action: "+request[1]+"</p>", "utf-8"))
-        if request[1] == "clear":
-            handle_buttonClear(0)
-        if request[1] == "next":
-            handle_buttonLoad(2)
-        if request[1] == "show":
-            self.wfile.write(bytes("<p>Parameter: "+request[2]+"</p>", "utf-8"))
-            handle_wwwLoad(request[2])
-        self.wfile.write(bytes("</body></html>", "utf-8"))
+        self.wfile.write(bytes(status, "utf-8"))
+        #self.wfile.write(bytes("<html><head><title>phpSimpleInkyImageServer</title></head><body>", "utf-8"))
+        #self.wfile.write(bytes("<p>Request: %s</p>" % self.path, "utf-8"))
+        #self.wfile.write(bytes("</body></html>", "utf-8"))
 
 # Web Server Thread
 def webserver_loop():
