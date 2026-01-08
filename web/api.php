@@ -49,7 +49,7 @@ switch($action) {
     case 'inky':
         if(isset($_GET['button'])) {
             $button = intval($_GET['button']);
-            return getRandomImageByButton($button);
+            echo getRandomImageByButton($button);
         } else if(isset($_GET['likeit'])) {
             $likeit = 1; if(intval($_GET['likeit']) < 0) $likeit = -1;
             // Get adn check image, fallback last displayed image

@@ -116,9 +116,10 @@ $('#btnControlInkyNext').on('click', function(e) {
     e.stopPropagation();
     showLoader('Requested Inky to display next random image.');
     api('webSendToInky', { action: 'next'}, res => {
-        if(res == "OK")
+        if(res == "OK") {
+            loadImageList();
             hideLoader();
-        else
+        } else
             unlockLoader(res);
     });
 });
