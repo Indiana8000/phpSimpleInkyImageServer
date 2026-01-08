@@ -47,6 +47,30 @@ try {
 // Process Call
 switch($action) {
     case 'inky':
+        if(isset($_GET['button'])) {
+            $button = intval($_GET['button']);
+            return getRandomImageByButton($button);
+        } else if(isset($_GET['likeit'])) {
+            $likeit = 1; if(intval($_GET['likeit']) < 0) $likeit = -1;
+            // Get adn check image, fallback last displayed image
+            if(isset($_GET['image'])) {
+                if(is_file($_GET['image']))
+                    $imagename = $_GET['image'];
+                else
+                    die("File not found!<br>" . $_GET['image']);
+            } else {
+                $stmt = $GLOBALS['DB']->query("SELECT imagename FROM inky_history ORDER BY viewed DESC LIMIT 1");
+                $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                $imagename = $row["imagename"];
+            }
+            $stmt = $GLOBALS['DB']->prepare("UPDATE inky_images SET likeit = likeit + :likeit WHERE imagename = :imagename");
+            $stmt->bindValue(':likeit'   , $likeit   , PDO::PARAM_INT);
+            $stmt->bindValue(':imagename', $imagename, PDO::PARAM_STR);
+            $stmt->execute();
+            echo $imagename;
+        } else {
+            echo "Missing parameters!";
+        }
         break;
     case 'webGetImageList':
         $data = [];
@@ -58,13 +82,13 @@ switch($action) {
         echo json_encode($data);
         break;
     case 'webGetRandomImage':
-        $stmt = $GLOBALS['DB']->query("SELECT * FROM inky_images WHERE likeit >= 0 ORDER BY (1 / POW(views + 1, 1.3)) * (RAND() + 0.0001) DESC LIMIT 1");
+        $stmt = $GLOBALS['DB']->query("SELECT * FROM inky_images WHERE lastupdate > 0 AND likeit >= 0 ORDER BY (1 / POW(views + 1, 1.3)) * (".$GLOBALS['CONFIG']['DB_X_RANDOM']." + 0.0001) DESC LIMIT 1");
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
         header('Content-Type: application/json');
         echo json_encode($data);
         break;
     case 'webGetRandomImageRaw':
-        $stmt = $GLOBALS['DB']->query("SELECT * FROM inky_images WHERE likeit >= 0 ORDER BY (1 / POW(views + 1, 1.3)) * (RAND() + 0.0001) DESC LIMIT 1");
+        $stmt = $GLOBALS['DB']->query("SELECT * FROM inky_images WHERE lastupdate > 0 AND likeit >= 0 ORDER BY (1 / POW(views + 1, 1.3)) * (".$GLOBALS['CONFIG']['DB_X_RANDOM']." + 0.0001) DESC LIMIT 1");
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
         $file = $data['imagename'];
         $imageType = exif_imagetype($file);
@@ -78,26 +102,48 @@ switch($action) {
         header('Content-Type: application/json');
         echo json_encode($result);
         break;
+    case 'webDeleteImage':
+        if(isset($input['url'])) {
+            if(is_file($input['url'])) {
+                unlink($input['url']);
+                $stmt = $GLOBALS['DB']->prepare("DELETE FROM inky_images WHERE imagename = :imagename");
+                $stmt->bindValue(':imagename', $input['url'], PDO::PARAM_STR);
+                $stmt->execute();
+                $stmt = $GLOBALS['DB']->prepare("DELETE FROM inky_history WHERE imagename = :imagename");
+                $stmt->bindValue(':imagename', $input['url'], PDO::PARAM_STR);
+                $stmt->execute();
+                echo "OK";
+            } else
+                die("File not found!<br>" . $input['url']);
+        }
+        break;
+    case 'webVoteImage':
+        $likeit = 1; if(intval($input['likeit']) < 0) $likeit = -1;
+        if(is_file($input['url'])) {
+            $imagename = $input['url'];
+            $stmt = $GLOBALS['DB']->prepare("UPDATE inky_images SET likeit = likeit + :likeit WHERE imagename = :imagename");
+            $stmt->bindValue(':likeit'   , $likeit   , PDO::PARAM_INT);
+            $stmt->bindValue(':imagename', $imagename, PDO::PARAM_STR);
+            $stmt->execute();
+            echo "OK";
+        } else
+            echo "File not Found!<br>" . $input['url'];
+        break;
     case 'webSendToInky':
         $url = $GLOBALS['CONFIG']['INKY_URL'] . '/?action=' . $input['action'];
         if(isset($input['url'])) {
             // TBD: If URL starts with HTTP download image to temp file and display
-            if(file_exists($input['url']))
+            if(is_file($input['url']))
                 $url .= '&url=' . urlencode($input['url']);
             else
-                die("File not found!");
+                die("File not found!<br>" . $input['url']);
         }
         $content = file_get_contents($url);
-        //header('Content-Type: application/json');
         echo $content;
-        //echo json_encode($result);
         break;
-
 
     default: http_response_code(400); echo 'Unknown action';
 }
-
-
 
 function updateDatabase() {
     $result = ['new' => [], 'deleted' => []];
@@ -132,6 +178,33 @@ function updateDatabase() {
     $stmt = $GLOBALS['DB']->query("DELETE FROM inky_images WHERE lastupdate = 0");
 
     return $result;
+}
+
+function getRandomImageByButton($button) {
+    // Get random image from favorit list
+    if($button == 6) {
+        $stmt = $GLOBALS['DB']->query("SELECT imagename FROM inky_images WHERE lastupdate > 0 AND likeit > 0 ORDER BY ".$GLOBALS['CONFIG']['DB_X_RANDOM']." LIMIT 1");
+
+    // Get any random image by view count
+    } else { 
+        $stmt = $GLOBALS['DB']->query("SELECT imagename FROM inky_images WHERE lastupdate > 0 AND likeit > -2 ORDER BY (1 / POW(views + 1, 1.3)) * (".$GLOBALS['CONFIG']['DB_X_RANDOM']." + 0.0001) DESC LIMIT 1");
+    }
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    $imagename = $row["imagename"];
+
+    if($button == 1 || $button == 2 || $button == 5) { // Update view counter
+        $stmt = $GLOBALS['DB']->prepare("UPDATE inky_images SET views = views + 1 WHERE imagename = :imagename");
+        $stmt->bindValue(':imagename', $imagename, PDO::PARAM_STR);
+        $stmt->execute();
+    }
+
+    // Write History
+    $stmt = $GLOBALS['DB']->prepare("INSERT INTO inky_history (viewed, imagename) VALUES (".$GLOBALS['CONFIG']['DB_X_NOW'].", :imagename)");
+    $stmt->bindValue(':imagename', $imagename, PDO::PARAM_STR);
+    $stmt->execute();
+
+    // Output Image Name (Binary will be loaded directly with extra call)
+    return $imagename;
 }
 
 ?>

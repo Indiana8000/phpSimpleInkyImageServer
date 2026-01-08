@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+#
+# phpSimpleInkyImageServer
+#
+# - Require Python 3.10 or newer
+#
 import time
 import math
 import requests

@@ -87,11 +87,12 @@ $('#btnControlUpdate').on('click', function(e) {
     e.stopPropagation();
     showLoader("Updating Database");
     api('webUpdateDatabase', {}, res => {
-        if(res.new.length > 10) html = "<strong>New images</strong> " + res.new.length;
-        else html = "<strong>New images:</strong><br>" + res.new.join('<br>');
+        console.log(res);
+        if(res['new'].length == 0 || res['new'].length > 10) html = "<strong>New images</strong> " + res['new'].length;
+        else html = "<strong>New images:</strong><br>" + res['new'].join('<br>');
         html += "<br><br>";
-        if(res.delted.length > 10) html += "<strong>Delted images</strong> " + res.delted.length;
-        else html += "<strong>Delted images:</strong><br>" + res.delted.join('<br>');
+        if(res['deleted'].length == 0 || res['deleted'].length > 10) html += "<strong>Deleted images</strong> " + res['deleted'].length;
+        else html += "<strong>Delted images:</strong><br>" + res['deleted'].join('<br>');
         unlockLoader(html);
     });
 });
@@ -170,10 +171,52 @@ $(document).on('click', '.imgView', function(e) {
     });
 });
 
+// ======================
+// Image-Action: Delete Image
+// ======================
+$(document).on('click', '.imgDel', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const f = $(this).closest('figure');
+    const i = f.find('img').attr('src');
+    if(confirm("Delete Image?\n" + i))
+        showLoader('Deleting file from Disk and Database:<br>' + i);
+        api('webDeleteImage', { url: i}, res => {
+            if(res == "OK") {
+                $(f).remove();
+                hideLoader();
+            } else
+                unlockLoader(res);
+        });
+});
 
-
-
-
+// ======================
+// Image-Action: Vote Image
+// ======================
+$(document).on('click', '.imgLup', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const f = $(this).closest('figure');
+    const i = f.find('img').attr('src');
+    api('webVoteImage', { likeit: 1, url: i}, res => {
+        if(res == "OK") {
+            loadImageList();
+        } else
+            unlockLoader(res);
+    });
+});
+$(document).on('click', '.imgLdown', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const f = $(this).closest('figure');
+    const i = f.find('img').attr('src');
+    api('webVoteImage', { likeit: -1, url: i}, res => {
+        if(res == "OK") {
+            loadImageList();
+        } else
+            unlockLoader(res);
+    });
+});
 
 
 
