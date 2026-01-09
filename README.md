@@ -18,3 +18,9 @@ Now with a nice web UI! Demo available at https://inky.bluepaw.de/
     - [Pimoroni - Combined Python library](https://github.com/pimoroni/inky) or checkout the Tutorial [Pimoroni - Getting Started with Inky Impression](https://learn.pimoroni.com/article/getting-started-with-inky-impression)
     - Check first lines of run.py for configuration.
     - Optional: See cronjob.example for autostart.
+
+## Example Pictures
+
+![Photo of inky 7.3](screenshot1.jpg)
+
+![Screenshot of phpSimpleInkyImageServer web UI](screenshot2.jpg)
