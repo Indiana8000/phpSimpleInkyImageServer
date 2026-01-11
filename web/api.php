@@ -163,7 +163,8 @@ switch($action) {
                 die("File not found!<br>" . $input['url']);
             }
         } else {
-            die("Invalid URL");
+            $content = file_get_contents($url);
+            echo $content;
         }
         break;
 
