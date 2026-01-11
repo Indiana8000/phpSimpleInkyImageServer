@@ -150,13 +150,21 @@ switch($action) {
         $url = $GLOBALS['CONFIG']['INKY_URL'] . '/?action=' . $input['action'];
         if(isset($input['url'])) {
             // TBD: If URL starts with HTTP download image to temp file and display
-            if(is_file($input['url']))
+            if(is_file($input['url'])) {
                 $url .= '&url=' . urlencode($input['url']);
-            else
+                $content = file_get_contents($url);
+                if($content == "OK") { // Only history, view counter unchanged
+                    $stmt = $GLOBALS['DB']->prepare("INSERT INTO inky_history (viewed, imagename) VALUES (".$GLOBALS['CONFIG']['DB_X_NOW'].", :imagename)");
+                    $stmt->bindValue(':imagename', $input['url'], PDO::PARAM_STR);
+                    $stmt->execute();
+                }
+                echo $content;
+            } else {
                 die("File not found!<br>" . $input['url']);
+            }
+        } else {
+            die("Invalid URL");
         }
-        $content = file_get_contents($url);
-        echo $content;
         break;
 
     default: http_response_code(400); echo 'Unknown action';
@@ -224,7 +232,8 @@ function getRandomImageByButton($button) {
     return $imagename;
 }
 
-function searchFile2($path, $pattern) {
+// Alternative search method for files outside the database
+function searchFile($path, $pattern) {
     $result = [];
     $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS));
     foreach ($iterator as $file) {

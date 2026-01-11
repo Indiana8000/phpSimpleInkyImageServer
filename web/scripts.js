@@ -147,10 +147,11 @@ $('#btnControlInkyDisplay').on('click', function(e) {
     e.preventDefault();
     e.stopPropagation();
     const i = $('#btnControlInkyUrl').val();
-    showLoader('Image ' + i + ' send to Inky.');
+    showLoader('Sending image to Inky<br>' + i);
     api('webSendToInky', { action: 'show', url: i}, res => {
         if(res == "OK") {
             $('#btnControlInkyUrl').val('');
+            loadImageList();
             hideLoader();
         } else
             unlockLoader(res);
@@ -165,11 +166,12 @@ $(document).on('click', '.imgView', function(e) {
     e.stopPropagation();
     const f = $(this).closest('figure');
     const i = f.find('img').attr('src');
-    showLoader('Image ' + i + ' send to Inky.');
+    showLoader('Sending image to Inky<br>' + i);
     api('webSendToInky', { action: 'show', url: i}, res => {
-        if(res == "OK")
+        if(res == "OK") {
+            loadImageList();
             hideLoader();
-        else
+        } else
             unlockLoader(res);
     });
 });
