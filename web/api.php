@@ -22,6 +22,10 @@ try {
         $GLOBALS['CONFIG']['DB_X_NOW']    = "DATETIME('now')";
         // Connect
         $GLOBALS['DB'] = new PDO($GLOBALS['CONFIG']['DB_DSN']);
+        // Register the POW function
+        $GLOBALS['DB']->sqliteCreateFunction('POW', function($base, $exponent) {
+            return pow($base, $exponent);
+        }, 2); // 2 parameters: base and exponent   
 	} else if($GLOBALS['CONFIG']['DB_TYPE'] == 'mysql') {
         // Define Functions
         $GLOBALS['CONFIG']['DB_X_RANDOM'] = 'RAND()';
