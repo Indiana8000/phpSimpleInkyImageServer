@@ -65,7 +65,7 @@ switch($action) {
             echo getRandomImageByButton($button);
         } else if(isset($_GET['likeit'])) {
             $likeit = 1; if(intval($_GET['likeit']) < 0) $likeit = -1;
-            // Get adn check image, fallback last displayed image
+            // Get and check image, fallback last displayed image
             if(isset($_GET['image'])) {
                 if(is_file($_GET['image']))
                     $imagename = $_GET['image'];
@@ -116,6 +116,8 @@ switch($action) {
         echo json_encode($result);
         break;
     case 'webDeleteImage':
+        if($GLOBALS['CONFIG']['DEMO_MODE']) // For Demo Site only
+            die("OK");
         if(isset($input['url'])) {
             if(is_file($input['url'])) {
                 unlink($input['url']);
@@ -151,6 +153,8 @@ switch($action) {
         echo json_encode($result);
         break;
     case 'webSendToInky':
+        if($GLOBALS['CONFIG']['DEMO_MODE']) // For Demo Site only
+            die("Web UI Demo is not connected to any Inky Display!");
         $url = $GLOBALS['CONFIG']['INKY_URL'] . '/?action=' . $input['action'];
         if(isset($input['url'])) {
             // TBD: If URL starts with HTTP download image to temp file and display

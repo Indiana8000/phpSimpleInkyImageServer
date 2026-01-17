@@ -26,4 +26,7 @@ $GLOBALS['CONFIG']['DB_DSN']      = 'sqlite:inky.sqlite';
 $GLOBALS['CONFIG']['DB_USER']     = 'inky';
 $GLOBALS['CONFIG']['DB_PASSWD']   = 'inky';
 
+// Enable demonstration mode for https://inky.bluepaw.de/
+$GLOBALS['CONFIG']['DEMO_MODE']   = false;
+
 ?>
