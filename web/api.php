@@ -157,11 +157,23 @@ switch($action) {
             die("Web UI Demo is not connected to any Inky Display!");
         $url = $GLOBALS['CONFIG']['INKY_URL'] . '/?action=' . $input['action'];
         if(isset($input['url'])) {
-            // TBD: If URL starts with HTTP download image to temp file and display
-            if(is_file($input['url'])) {
+            if(str_starts_with(strtolower($input['url']), 'http')) {
+                $image = @file_get_contents($input['url']);
+                if(!$image)
+                    die("Remote file not found!<br>" . $input['url']);
+                $size = @getimagesizefromstring($image);
+                if(is_array($size) && $size[0] > 0 && $size[1] > 0) {
+                    imagejpeg(imagecreatefromstring($image), './tmp.jpg', 85);
+                    $url .= '&url=' . urlencode('./tmp.jpg');
+                    $content = file_get_contents($url);
+                    echo $content;
+                } else {
+                    echo "Remote file is not a image!<br>" . $input['url'];
+                }
+            } else if(is_file($input['url'])) {
                 $url .= '&url=' . urlencode($input['url']);
                 $content = file_get_contents($url);
-                if($content == "OK") { // Only history, view counter unchanged
+                if($content == "OK") { // Only set history, view counter unchanged
                     $stmt = $GLOBALS['DB']->prepare("INSERT INTO inky_history (viewed, imagename) VALUES (".$GLOBALS['CONFIG']['DB_X_NOW'].", :imagename)");
                     $stmt->bindValue(':imagename', $input['url'], PDO::PARAM_STR);
                     $stmt->execute();

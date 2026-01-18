@@ -13,6 +13,9 @@ $GLOBALS['CONFIG']['INKY_URL']    = 'http://192.168.1.2:8080';
 // e.g. all subfolders of current direcotry: ./*/*.{png,jpg,jpeg}
 $GLOBALS['CONFIG']['IMAGE_PATH']  = './images/*.{png,jpg,jpeg}';
 
+// Allow remote URLs from Web UI as Image URL
+$GLOBALS['CONFIG']['REMOTE_URL']  = false;
+
 // Database type
 // Posible values: mysql, sqlite
 $GLOBALS['CONFIG']['DB_TYPE']     = 'sqlite';
