@@ -166,6 +166,7 @@ switch($action) {
                     imagejpeg(imagecreatefromstring($image), './tmp.jpg', 85);
                     $url .= '&url=' . urlencode('./tmp.jpg');
                     $content = file_get_contents($url);
+                    unlink('./tmp.jpg');
                     echo $content;
                 } else {
                     echo "Remote file is not a image!<br>" . $input['url'];
