@@ -227,8 +227,11 @@ class MyServer(BaseHTTPRequestHandler):
                 status = "OK"
             case 'show':
                 url = qs.get("url", [None])[0]
-                handle_wwwLoad(url)
-                status = "OK"
+                if "@" in url:
+                    status = "Posible URL-Spoofing detected! Please remove all @ characters from your file names."
+                else:
+                    handle_wwwLoad(url)
+                    status = "OK"
 
         self.send_response(200)
         self.send_header("Content-type", "text/html")
