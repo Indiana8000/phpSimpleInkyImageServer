@@ -152,6 +152,17 @@ switch($action) {
         header('Content-Type: application/json');
         echo json_encode($result);
         break;
+    case 'webGetInkyStatus':
+        if($GLOBALS['CONFIG']['DEMO_MODE']) { // For Demo Site only
+            $status = ['slideshow' => 20, 'countdown' => 4, 'running' => 'False', 'last_image' => ''];
+        } else {
+            $url = $GLOBALS['CONFIG']['INKY_URL'] . '/?action=status';
+            $content = @file_get_contents($url);
+            $status = @json_decode($content, true);
+        }
+        header('Content-Type: application/json');
+        echo json_encode($status);
+        break;
     case 'webSendToInky':
         if($GLOBALS['CONFIG']['DEMO_MODE']) // For Demo Site only
             die("Web UI Demo is not connected to any Inky Display!");

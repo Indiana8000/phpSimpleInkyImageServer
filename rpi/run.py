@@ -12,7 +12,7 @@ import random
 
 import RPi.GPIO as GPIO
 
-from PIL import Image, ImageStat
+from PIL import Image, ImageStat, ImageOps
 from inky.auto import auto
 from inky.inky_uc8159 import CLEAN
 
@@ -89,21 +89,8 @@ def getImageRemote(image_url):
 # Resize Image by Aspection Ratio and Fill
 def resizeImage(image, resolution):
     if image.size != resolution:
-        aspection_ratio_target = resolution[0] / resolution[1]
-        aspection_ratio_source = image.size[0] / image.size[1]
-        if aspection_ratio_source < aspection_ratio_target:
-            height = resolution[1] * image.size[0] / resolution[0]
-            height = (image.size[1] - height) / 2
-            box = (0, height, image.size[0], image.size[1] - height)
-        else:
-            width = resolution[0] * image.size[1] / resolution[1]
-            width = (image.size[0] - width) / 2
-            box = (width, 0, image.size[0] - width, image.size[1])
-        print("resizeImage - {}@{:.2f} to {}@{:.2f}".format(image.size, aspection_ratio_source, resolution, aspection_ratio_target))
-        resizedimage = image.resize(resolution, Image.LANCZOS, box)
-    else:
-        resizedimage = image.copy()
-    return resizedimage
+        image = ImageOps.fit(image, resolution, method=Image.LANCZOS, centering=(0.5, 0.5))
+    return image
 
 def getSaturationByBrightness(image):
     stat = ImageStat.Stat(image)
@@ -122,6 +109,7 @@ def getSaturationByBrightness(image):
 
 # Show image on screen +Resize +Saturation
 def showImage(image):
+    image = image.convert("RGB")
     image = resizeImage(image, inky.resolution)
     saturation = getSaturationByBrightness(image)
     inky.set_image(image, saturation=saturation)
@@ -225,6 +213,8 @@ class MyServer(BaseHTTPRequestHandler):
             case 'next':
                 handle_buttonLoad(2)
                 status = "OK"
+            case 'status':
+                status = '{"slideshow": %d, "countdown": %d, "running": "%s", "last_image": "%s"}' % (slideshow, countdown, running, image_last_name) 
             case 'show':
                 url = qs.get("url", [None])[0]
                 if "@" in url:

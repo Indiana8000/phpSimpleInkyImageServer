@@ -15,6 +15,7 @@ function api(action, data = {}, cb) {
         method: 'POST',
         data: JSON.stringify(data),
         contentType: 'application/json',
+        timeout: 15000,
         success: cb
     });
 }
@@ -38,10 +39,10 @@ function renderFigure(i) {
         <figure class="image-card">
             <img src="${i.imagename}" loading="lazy">
             <div class="actions">
-                <button class="imgView"  title="Ansehen">🖥️</button>
+                <button class="imgView"  title="Send to Inky">🖥️</button>
                 <button class="imgLup"   title="Like +">👍</button>
                 <button class="imgLdown" title="Like -">👎</button>
-                <button class="imgDel"   title="Löschen">🗑</button>
+                <button class="imgDel"   title="Delete">🗑</button>
             </div>
             <figcaption class="overlay">
                 <div class="overlay-content">
@@ -363,6 +364,44 @@ function hideList() {
 
 
 // ======================
+// Inky: Status
+// ======================
+function renderStatus(res) {
+    // Handle both object response and plain string
+    if (!res) return $('#inkyStatusBody').text('⚠️').prop('title', 'No response');
+    if (typeof res === 'string') {
+        // plain text
+        $('#inkyStatusBody').text(res);
+        return;
+    }
+    // Expecting object with keys: slideshow, countdown, running, last_image
+    if (res.slideshow !== undefined && res.countdown !== undefined) {
+        const running = res.running == "True" ? '▶️' : '⏹️';
+        const last = res.last_image ? res.last_image : '';
+        $('#inkyStatusBody').html(`${running} ${res.countdown ?? '–'} / ${res.slideshow ?? '–'}`);
+        $('#inkyStatusBody').prop('title', last);
+        if(res.countdown == res.slideshow)
+            loadImageList();
+        return;
+    }
+    // Fallback: show JSON
+    $('#inkyStatusBody').text(JSON.stringify(res));
+}
+
+function loadInkyStatus() {
+    api('webGetInkyStatus', {}, res => {
+        renderStatus(res);
+    });
+}
+
+
+
+// ======================
 // Init
 // ======================
-$(document).ready(loadImageList);
+$(document).ready(function() {
+    loadImageList();
+
+    loadInkyStatus();
+    setInterval(loadInkyStatus, 30000);
+});

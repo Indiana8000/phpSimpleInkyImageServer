@@ -125,17 +125,33 @@ h1 {
 .control-input input {
     padding: 0.5rem 0.75rem;
     width: 100%;
+    height: 100%;
 
     border-radius: 999px;
     border: none;
     outline: none;
 
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     font-weight: 500;
     min-width: 220px;
 
     background: rgba(255,255,255,0.9);
     box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);
+}
+.control-status {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+
+    font-size: 0.95rem;
+    font-weight: 600;
+    white-space: nowrap;
+
+    min-width: 180px;
+    padding: 0.5rem 0.75rem;
+
+    border-radius: var(--b-border-radius);
+    background: rgba(0,0,0,0.06);
 }
 /* Mobile Optimization */
 @media (max-width: 900px) {
