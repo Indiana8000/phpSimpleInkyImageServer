@@ -15,8 +15,12 @@ function api(action, data = {}, cb) {
         method: 'POST',
         data: JSON.stringify(data),
         contentType: 'application/json',
-        timeout: 15000,
-        success: cb
+        timeout: 60000,
+        success: cb,
+        error: (xhr, status, error) => {
+            console.error('API Error:', status, error);
+            unlockLoader(`<strong>API Error:</strong><br>${status} - ${error}`);
+        }
     });
 }
 

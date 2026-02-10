@@ -157,7 +157,7 @@ switch($action) {
             $status = ['slideshow' => 20, 'countdown' => 4, 'running' => 'False', 'last_image' => ''];
         } else {
             $url = $GLOBALS['CONFIG']['INKY_URL'] . '/?action=status';
-            $content = @file_get_contents($url);
+            $content = @file_get_contents($url, false, stream_context_create(['http' => ['timeout' => 15]]));
             $status = @json_decode($content, true);
         }
         header('Content-Type: application/json');
