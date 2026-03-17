@@ -24,7 +24,7 @@ from threading import Thread
 # How long in minutes a image should be displayed
 slideshow = 20
 
-# Where to get the images: remote / local
+# Where to get the images: remote / local / wallhaven
 mode = "remote"
 
 # Local / Offline Parameters
@@ -34,6 +34,13 @@ image_history_max = 15
 # Remote / Online Parameters
 url_base = "http://192.168.5.21/inky" # You cound use the Demo site as source for testing: https://inky.bluepaw.de/
 url_inky = url_base + "/api.php?action=inky"
+
+# Wallhaven Parameters
+wallhaven_apikey  = ""          # Your Wallhaven API key (required for nsfw purity=xx1)
+wallhaven_purity  = "100"       # sfw=100, sketchy=010, nsfw=001 (or combinations, e.g. 111 = all)
+wallhaven_ratios  = "16x9"      # e.g. 16x9, 16x10, 9x16
+wallhaven_sorting = "random"    # date_added, relevance, random, views, favorites, toplist
+wallhaven_query   = ""          # optional search term, leave empty for any
 
 
 
@@ -75,6 +82,33 @@ def getRandomImageRemote(pin):
     image_last_name = response.text
     print("getRandomImageRemote - {}".format(image_last_name))
     r = requests.get("{}/{}".format(url_base, image_last_name), stream=True)
+    r.raw.decode_content = True
+    return Image.open(r.raw)
+
+def getRandomImageWallhaven():
+    global image_last_name
+    params = {
+        "purity":  wallhaven_purity,
+        "ratios":  wallhaven_ratios,
+        "atleast": "{}x{}".format(inky.resolution[0], inky.resolution[1]),
+        "sorting": wallhaven_sorting,
+        "q":       wallhaven_query,
+        "apikey":  wallhaven_apikey,
+    }
+    # remove empty params so the API doesn't receive blank values
+    params = {k: v for k, v in params.items() if v != ""}
+    api_url = "https://wallhaven.cc/api/v1/search"
+    response = requests.get(api_url, params=params, timeout=15)
+    response.raise_for_status()
+    data = response.json().get("data", [])
+    if not data:
+        raise ValueError("Wallhaven API returned no results")
+    wallpaper = data[0]
+    image_url = wallpaper["path"]
+    image_last_name = image_url
+    print("getRandomImageWallhaven - {}".format(image_url))
+    r = requests.get(image_url, stream=True, timeout=30)
+    r.raise_for_status()
     r.raw.decode_content = True
     return Image.open(r.raw)
 
@@ -136,6 +170,8 @@ def handle_buttonLoad(pin):
         try:
             if mode == "local":
                 image = getRandomImageLocal()
+            elif mode == "wallhaven":
+                image = getRandomImageWallhaven()
             else:
                 image = getRandomImageRemote(pin)
             showImage(image)
@@ -206,22 +242,23 @@ class MyServer(BaseHTTPRequestHandler):
         qs = parse_qs(urlparse(self.path).query)
         action = qs.get("action", [None])[0]
         status = "Unknown Error"
-        match action:
-            case 'clear':
-                handle_buttonClear(0)
+        if action == 'clear':
+            handle_buttonClear(0)
+            status = "OK"
+        elif action == 'next':
+            handle_buttonLoad(2)
+            status = "OK"
+        elif action == 'status':
+            status = '{"slideshow": %d, "countdown": %d, "running": "%s", "last_image": "%s"}' % (slideshow, countdown, running, image_last_name) 
+        elif action == 'show':
+            url = qs.get("url", [None])[0]
+            if not url:
+                status = "Missing url parameter."
+            elif "@" in url:
+                status = "Posible URL-Spoofing detected! Please remove all @ characters from your file names."
+            else:
+                handle_wwwLoad(url)
                 status = "OK"
-            case 'next':
-                handle_buttonLoad(2)
-                status = "OK"
-            case 'status':
-                status = '{"slideshow": %d, "countdown": %d, "running": "%s", "last_image": "%s"}' % (slideshow, countdown, running, image_last_name) 
-            case 'show':
-                url = qs.get("url", [None])[0]
-                if "@" in url:
-                    status = "Posible URL-Spoofing detected! Please remove all @ characters from your file names."
-                else:
-                    handle_wwwLoad(url)
-                    status = "OK"
 
         self.send_response(200)
         self.send_header("Content-type", "text/html")
