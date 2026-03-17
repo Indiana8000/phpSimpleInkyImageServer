@@ -370,6 +370,13 @@ function hideList() {
 // ======================
 // Inky: Status
 // ======================
+$('#inkyStatusBody').on('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const url = $(this).prop('title');
+    if (url) lightboxShowImage(url);
+});
+
 function renderStatus(res) {
     // Handle both object response and plain string
     if (!res) return $('#inkyStatusBody').text('⚠️').prop('title', 'No response');

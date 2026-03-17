@@ -146,6 +146,7 @@ h1 {
     font-size: 0.95rem;
     font-weight: 600;
     white-space: nowrap;
+    cursor: pointer;
 
     min-width: 180px;
     padding: 0.5rem 0.75rem;
