@@ -24,8 +24,8 @@ from threading import Thread
 # How long in minutes a image should be displayed
 slideshow = 20
 
-# Where to get the images: remote / local / wallhaven
-mode = "remote"
+# Where to get the images: remote / local / wallhaven / deviantart
+mode = "wallhaven"
 
 # Local / Offline Parameters
 image_path = "images"
@@ -42,6 +42,12 @@ wallhaven_ratios  = "16x9"      # e.g. 16x9, 16x10, 9x16
 wallhaven_sorting = "random"    # date_added, relevance, random, views, favorites, toplist
 wallhaven_query   = ""          # optional search term, leave empty for any
 
+# DeviantArt Parameters  (create app at https://www.deviantart.com/developers/)
+deviantart_client_id     = ""           # DeviantArt app client ID
+deviantart_client_secret = ""           # DeviantArt app client secret
+deviantart_tag           = "wallpaper"  # Tag to browse (browse/tags endpoint)
+deviantart_mature        = False        # Include mature content (account must have it enabled)
+
 
 
 # Internal Variables
@@ -49,6 +55,10 @@ image_history = []
 image_last_name = ""
 running = True
 countdown = slideshow / 4
+
+# DeviantArt token cache
+_deviantart_token = None
+_deviantart_token_expiry = 0.0
 
 # Init Inky Display
 inky = auto(verbose=True)
@@ -112,6 +122,57 @@ def getRandomImageWallhaven():
     r.raw.decode_content = True
     return Image.open(r.raw)
 
+def _getDeviantArtToken():
+    global _deviantart_token, _deviantart_token_expiry
+    if _deviantart_token and time.time() < _deviantart_token_expiry:
+        return _deviantart_token
+    r = requests.post(
+        "https://www.deviantart.com/oauth2/token",
+        data={
+            "grant_type":    "client_credentials",
+            "client_id":     deviantart_client_id,
+            "client_secret": deviantart_client_secret,
+        },
+        timeout=15,
+    )
+    r.raise_for_status()
+    data = r.json()
+    _deviantart_token = data["access_token"]
+    _deviantart_token_expiry = time.time() + data.get("expires_in", 3600) - 60
+    return _deviantart_token
+
+def getRandomImageDeviantArt():
+    global image_last_name
+    token = _getDeviantArtToken()
+    headers = {"Authorization": "Bearer " + token}
+    params = {
+        "tag":            deviantart_tag,
+        "limit":          50,
+        "offset":         random.randint(1, 1000),
+        "mature_content": "true" if deviantart_mature else "false",
+    }
+    api_url = "https://www.deviantart.com/api/v1/oauth2/browse/tags"
+    response = requests.get(api_url, params=params, headers=headers, timeout=15)
+    response.raise_for_status()
+    results = response.json().get("results", [])
+    # keep only image deviations that meet the display resolution
+    min_w, min_h = inky.resolution
+    images = [
+        d for d in results
+        if d.get("content")
+        and d["content"].get("width",  0) >= min_w
+        and d["content"].get("height", 0) >= min_h
+    ]
+    if not images:
+        raise ValueError("DeviantArt API returned no suitable image results")
+    image_url = random.choice(images)["content"]["src"]
+    image_last_name = image_url
+    print("getRandomImageDeviantArt - {}".format(image_url))
+    r = requests.get(image_url, stream=True, timeout=30)
+    r.raise_for_status()
+    r.raw.decode_content = True
+    return Image.open(r.raw)
+
 def getImageRemote(image_url):
     global image_last_name
     image_last_name = image_url
@@ -166,6 +227,8 @@ def handle_buttonLoad(pin):
                 image = getRandomImageLocal()
             elif mode == "wallhaven":
                 image = getRandomImageWallhaven()
+            elif mode == "deviantart":
+                image = getRandomImageDeviantArt()
             else:
                 image = getRandomImageRemote(pin)
             showImage(image)
