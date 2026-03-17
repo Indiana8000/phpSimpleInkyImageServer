@@ -10,11 +10,11 @@ import requests
 import os
 import random
 
-import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO # type: ignore
 
 from PIL import Image, ImageStat, ImageOps
-from inky.auto import auto
-from inky.inky_uc8159 import CLEAN
+from inky.auto import auto # type: ignore
+from inky.inky_uc8159 import CLEAN # type: ignore
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse, parse_qs
@@ -129,16 +129,10 @@ def resizeImage(image, resolution):
 def getSaturationByBrightness(image):
     stat = ImageStat.Stat(image)
     sat = math.sqrt(0.241*(stat.mean[0]**2) + 0.691*(stat.mean[1]**2) + 0.068*(stat.mean[2]**2))
-    saturation = 0.5
-    if sat < 100:
-        saturation = 0.25
-    if sat < 40:
-        saturation = 0.0
-    if sat > 140:
-        saturation = 0.75
-    if sat > 180:
-        saturation = 1.0
-    print("getSaturationByBrightness - {}".format(saturation))
+    # Continuous linear interpolation: dark images -> 0.0, bright images -> max 0.7
+    # The upper limit of 0.7 prevents results from appearing too bright / washed out on the display
+    saturation = round(max(0.0, min(0.7, sat / 255.0 * 0.85)), 2)
+    print("getSaturationByBrightness - sat:{:.1f} -> saturation:{:.2f}".format(sat, saturation))
     return saturation
 
 # Show image on screen +Resize +Saturation
@@ -223,7 +217,6 @@ GPIO.add_event_detect(BUTTONS[0], GPIO.FALLING, handle_buttonLoad    , bouncetim
 GPIO.add_event_detect(BUTTONS[1], GPIO.FALLING, handle_buttonLoad    , bouncetime=200)
 GPIO.add_event_detect(BUTTONS[2], GPIO.FALLING, handle_buttonLikeit  , bouncetime=300)
 GPIO.add_event_detect(BUTTONS[3], GPIO.FALLING, handle_buttonDisLike , bouncetime=300)
-
 
 # Slideshow Thread
 def slideshow_loop():
