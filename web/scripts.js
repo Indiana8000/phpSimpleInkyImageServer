@@ -38,10 +38,10 @@ function renderSection(id, title) {
         </section>
     `;
 }
-function renderFigure(i) {
+function renderFigure(i, lazy) {
     return `
         <figure class="image-card">
-            <img src="${i.imagename}" loading="lazy">
+            <img src="${i.imagename}" loading="${lazy ? 'lazy' : 'eager'}" alt="${i.imagename}">
             <div class="actions">
                 <button class="imgView"  title="Send to Inky">🖥️</button>
                 <button class="imgLup"   title="Like +">👍</button>
@@ -68,7 +68,7 @@ function loadImageList() {
         $('#ImageGallery').empty();
         $('#ImageGallery').append(renderSection('s_last', 'Last displayed'));
         res.lastViewed.forEach(i => {
-            $('#s_last').append(renderFigure(i));
+            $('#s_last').append(renderFigure(i, false));
         });
         let section_id = null;
         res.liked.forEach(i => {
@@ -77,7 +77,7 @@ function loadImageList() {
                 $('#ImageGallery').append(renderSection('s_' + section_id, 'Likes: ' + section_id));
                 if(section_id < 0)$('#s_' + section_id).parent().addClass('theme-red');
             }
-            $('#s_' + section_id).append(renderFigure(i));
+            $('#s_' + section_id).append(renderFigure(i, true));
         });
 
     });
