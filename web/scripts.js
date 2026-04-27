@@ -189,15 +189,15 @@ $(document).on('click', '.imgDel', function(e) {
     e.stopPropagation();
     const f = $(this).closest('figure');
     const i = f.find('img').attr('src');
-    if(confirm("Delete Image?\n" + i))
-        showLoader('Deleting file from Disk and Database:<br>' + i);
-        api('webDeleteImage', { url: i}, res => {
-            if(res == "OK") {
-                $(f).remove();
-                hideLoader();
-            } else
-                unlockLoader(res);
-        });
+    if (!confirm("Delete this image?\n" + i)) return;
+    showLoader('Deleting file from Disk and Database:<br>' + i);
+    api('webDeleteImage', { url: i}, res => {
+        if(res == "OK") {
+            $(f).remove();
+            hideLoader();
+        } else
+            unlockLoader(res);
+    });
 });
 
 // ======================
@@ -220,6 +220,7 @@ $(document).on('click', '.imgLdown', function(e) {
     e.stopPropagation();
     const f = $(this).closest('figure');
     const i = f.find('img').attr('src');
+    if (!confirm("Dislike this image?\n" + i)) return;
     api('webVoteImage', { likeit: -1, url: i}, res => {
         if(res == "OK") {
             loadImageList();
@@ -231,6 +232,18 @@ $(document).on('click', '.imgLdown', function(e) {
 
 
 // ======================
+// Scroll Lock
+// ======================
+function lockScroll() {
+    document.body.style.overflow = 'hidden';
+}
+function unlockScroll() {
+    if (!$('#loader').hasClass('visible') && !$('#lightbox').hasClass('visible')) {
+        document.body.style.overflow = '';
+    }
+}
+
+// ======================
 // Dialog: Loader
 // ======================
 let loaderLocked = false;
@@ -239,9 +252,11 @@ function showLoader(text) {
     $('#loader .loader-text').html(text);
     $('#loader .spinner').show();
     $('#loader').addClass('visible');
+    lockScroll();
 }
 function hideLoader() {
     $('#loader').removeClass('visible');
+    unlockScroll();
 }
 function unlockLoader(text) {
     loaderLocked = false;
@@ -270,11 +285,13 @@ $('#lightbox').on('click', function(e) {
     e.preventDefault();
     e.stopPropagation();
     $('#lightbox').removeClass('visible');
+    unlockScroll();
 });
 function lightboxShowImage(url) {
     $('#lightbox-img').attr('src', '');
     $('#lightbox-img').attr('src', url);
     $('#lightbox').addClass('visible');
+    lockScroll();
 }
 
 
